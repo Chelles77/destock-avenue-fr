@@ -36,10 +36,24 @@
       padding:.75rem 1.25rem; background:#1f2937; color:#fff; box-shadow: 0 2px 8px rgba(0,0,0,0.3); }
     .navbar .brand { font-weight:700; color:#fff; text-decoration:none; margin-right:1rem; }
     .navbar .nav-links { display:flex; align-items:center; gap:1rem; flex-wrap:wrap; margin-left:auto; }
-    .navbar a { color:#d1d5db; text-decoration:none; font-size:.95rem; }
+    .navbar a { color:#d1d5db; text-decoration:none; font-size:.95rem; transition: color 0.2s; }
     .navbar a:hover { color:#fff; }
+    .navbar a.active { color:#818cf8; font-weight:700; }
     .navbar .nav-user { color:#9ca3af; font-size:.85rem; }
   </style>
+
+  <script>
+    document.addEventListener('DOMContentLoaded', function() {
+      const currentPath = window.location.pathname;
+      const navLinks = document.querySelectorAll('.navbar a');
+      navLinks.forEach(link => {
+        const href = link.getAttribute('href');
+        if (href && (currentPath === href || currentPath.startsWith(href + '/'))) {
+          link.classList.add('active');
+        }
+      });
+    });
+  </script>
 
   <main class="container">
     {% with messages = get_flashed_messages(with_categories=true) %}

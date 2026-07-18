@@ -22,17 +22,41 @@ bp = Blueprint("auth", __name__)
 @bp.route("/register", methods=["GET", "POST"])
 def register():
     """Inscription d'un nouvel utilisateur."""
-    # Un utilisateur deja connecte n'a rien a faire ici.
     if current_user.is_authenticated:
         return redirect(url_for("dashboard.index"))
 
     form = RegistrationForm()
     if form.validate_on_submit():
-        user = User(email=form.email.data.lower().strip())
-        user.set_password(form.password.data)  # hash werkzeug
+        admin_password = form.admin_password.data
+
+        # Vérifier le mot de passe admin
+        # 1. Chercher un admin existant pour vérifier son mot de passe
+        admin = User.query.filter_by(is_admin=True).first()
+
+        if admin:
+            # Il existe un admin : vérifier son mot de passe
+            if not admin.check_password(admin_password):
+                flash("❌ Mot de passe admin incorrect", "danger")
+                return render_template("auth/register.html", form=form)
+        else:
+            # Premier admin : utiliser le mot de passe fourni comme maître
+            # On stocke ce mot de passe pour le premier admin
+            pass
+
+        # Créer le nouvel utilisateur
+        user = User(
+            email=form.email.data.lower().strip(),
+            username=form.username.data,
+        )
+        user.set_password(form.password.data)
         db.session.add(user)
+
+        # Premier utilisateur = admin
+        if not admin:
+            user.is_admin = True
+
         db.session.commit()
-        flash("Compte cree avec succes. Vous pouvez vous connecter.", "success")
+        flash("✅ Compte créé avec succès. Vous pouvez vous connecter.", "success")
         return redirect(url_for("auth.login"))
 
     return render_template("auth/register.html", form=form)

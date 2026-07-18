@@ -19,6 +19,7 @@ class LoginForm(FlaskForm):
 
 
 class RegistrationForm(FlaskForm):
+    username = StringField("Nom du collaborateur", validators=[DataRequired(), Length(max=120)])
     email = StringField("Email", validators=[DataRequired(), Email(), Length(max=120)])
     password = PasswordField(
         "Mot de passe",
@@ -28,12 +29,13 @@ class RegistrationForm(FlaskForm):
         "Confirmer le mot de passe",
         validators=[DataRequired(), EqualTo("password", message="Les mots de passe different.")],
     )
+    admin_password = PasswordField(
+        "Mot de passe admin",
+        validators=[DataRequired(message="Mot de passe admin requis pour l'inscription")],
+    )
     submit = SubmitField("Creer le compte")
 
     def validate_email(self, field):
-        """Validateur "inline" WTForms : verifie l'unicite de l'email en base.
-
-        WTForms appelle automatiquement toute methode nommee validate_<champ>.
-        """
+        """Validateur "inline" WTForms : verifie l'unicite de l'email en base."""
         if User.query.filter_by(email=field.data.lower().strip()).first():
             raise ValidationError("Un compte existe deja avec cet email.")

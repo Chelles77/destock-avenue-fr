@@ -46,6 +46,7 @@ class User(UserMixin, db.Model):
 
     id = db.Column(db.Integer, primary_key=True)
     email = db.Column(db.String(120), unique=True, nullable=False, index=True)
+    username = db.Column(db.String(120), nullable=True)  # Nom du collaborateur
     password_hash = db.Column(db.String(255), nullable=False)
     is_admin = db.Column(db.Boolean, default=False, nullable=False)
     date_created = db.Column(db.DateTime(timezone=True), default=_utcnow, nullable=False)
@@ -106,7 +107,10 @@ class RawProduct(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(150), nullable=False)
     supplier = db.Column(db.String(150))
-    cost_price = db.Column(db.Float, default=0.0, nullable=False)  # cout unitaire
+    cost_price = db.Column(db.Float, default=0.0, nullable=False)  # cout unitaire (prix neuf)
+    estimated_resale_value = db.Column(db.Float, default=0.0, nullable=False)  # valeur estimee a la revente
+    description = db.Column(db.Text)
+    image_path = db.Column(db.String(255))  # photo du produit brut
     quantity = db.Column(db.Integer, default=1, nullable=False)
     date_added = db.Column(db.DateTime(timezone=True), default=_utcnow, nullable=False)
 
@@ -125,6 +129,27 @@ class RawProduct(db.Model):
     def __repr__(self):
         return f"<RawProduct {self.id} {self.name} x{self.quantity}>"
 
+    @property
+    def lot_pay_ratio(self):
+        """Pourcentage reellement paye pour le lot vs sa valeur neuf affichee.
+
+        Ex : lot afficha 100 000 EUR de neuf, paye 10 000 EUR (frais compris)
+        -> ratio = 10%. Retourne 100% si le produit n'est rattache a aucun lot
+        (cout considere comme paye a 100%).
+        """
+        lot = self.purchase_lot
+        if not lot or not lot.estimated_retail_total:
+            return 100.0
+        return round(lot.total_cost / lot.estimated_retail_total * 100, 1)
+
+    @property
+    def real_unit_cost(self):
+        """Cout reel unitaire = prix neuf * ratio de paiement du lot.
+
+        Ex : produit a 1000 EUR neuf, lot paye a 10% -> cout reel = 100 EUR.
+        """
+        return round(self.cost_price * self.lot_pay_ratio / 100, 2)
+
 
 # =============================================================================
 # 3. STOCK  (article prepare, decrit, photographie et mis en vente)
@@ -138,6 +163,8 @@ class StockItem(db.Model):
     sell_price = db.Column(db.Float, default=0.0, nullable=False)  # prix de vente vise
     description = db.Column(db.Text)
     condition = db.Column(db.String(50))   # ex : "Neuf", "Tres bon etat", "Occasion"
+    packaging_condition = db.Column(db.String(50))  # etat de l'emballage (verifie physiquement)
+    target_platform = db.Column(db.String(80))       # ou vendre : Vinted, Leboncoin, eBay...
     status = db.Column(db.String(30), default="draft", nullable=False, index=True)
     # status : draft (preparation) | available (pret) | sold (vendu) | archived
 
@@ -216,6 +243,7 @@ class PurchaseLot(db.Model):
     # ---- Donnees du simulateur B-Stock ----
     estimated_retail_total = db.Column(db.Float, default=0.0, nullable=False)   # prix neuf affiche
     quantity = db.Column(db.Integer, default=1, nullable=False)                 # nb de pieces
+    pallet_count = db.Column(db.Integer)                                       # nb de palettes (optionnel)
     bid_price = db.Column(db.Float, default=0.0, nullable=False)                # prix d'enchere
     auction_fee_percent = db.Column(db.Float, default=5.0, nullable=False)      # % frais d'encheres
     shipping_cost = db.Column(db.Float, default=0.0, nullable=False)            # port total
@@ -345,6 +373,7 @@ class Expense(db.Model):
     category = db.Column(db.String(80), nullable=False, index=True)  # ex : "Emballage"
     amount = db.Column(db.Float, nullable=False)
     description = db.Column(db.Text)
+    is_fixed = db.Column(db.Boolean, default=False, nullable=False)  # charge fixe (mensuelle) vs variable
     date = db.Column(db.DateTime(timezone=True), default=_utcnow, nullable=False)
 
     # Proprietaire.

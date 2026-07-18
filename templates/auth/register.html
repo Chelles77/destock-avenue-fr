@@ -8,6 +8,12 @@
     {{ form.hidden_tag() }}  {# jeton CSRF #}
 
     <div class="field">
+      {{ form.username.label }}
+      {{ form.username(class="input", placeholder="Jean Dupont") }}
+      {% for error in form.username.errors %}<span class="error">{{ error }}</span>{% endfor %}
+    </div>
+
+    <div class="field">
       {{ form.email.label }}
       {{ form.email(class="input", placeholder="vous@exemple.fr") }}
       {% for error in form.email.errors %}<span class="error">{{ error }}</span>{% endfor %}
@@ -23,6 +29,12 @@
       {{ form.confirm.label }}
       {{ form.confirm(class="input") }}
       {% for error in form.confirm.errors %}<span class="error">{{ error }}</span>{% endfor %}
+    </div>
+
+    <div class="field">
+      {{ form.admin_password.label }}
+      {{ form.admin_password(class="input", placeholder="Mot de passe admin") }}
+      {% for error in form.admin_password.errors %}<span class="error">{{ error }}</span>{% endfor %}
     </div>
 
     {{ form.submit(class="btn btn-primary") }}

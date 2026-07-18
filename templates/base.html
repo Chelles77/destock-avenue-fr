@@ -20,7 +20,7 @@
         <a href="{{ url_for('finance.index') }}">Finance</a>
         <a href="{{ url_for('social_charges.index') }}">URSSAF/Impôts</a>
         <a href="{{ url_for('analytics.index') }}">Analytique</a>
-        <span class="nav-user">{{ current_user.email }}</span>
+        <span class="nav-user">👤 {{ current_user.username or current_user.email }}</span>
         <a href="{{ url_for('auth.logout') }}">Deconnexion</a>
       {% else %}
         <a href="{{ url_for('auth.login') }}">Connexion</a>

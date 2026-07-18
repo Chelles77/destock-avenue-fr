@@ -1,0 +1,42 @@
+﻿{% extends "base.html" %}
+
+{% block title %}Réinitialiser l'application - ReventePro V4{% endblock %}
+
+{% block content %}
+<div class="page-head">
+  <h1>⚠️ Réinitialiser l'application</h1>
+</div>
+
+<div class="card" style="max-width: 600px; margin: 2rem auto;">
+  <div class="verdict-red" style="margin-top: 0;">
+    <strong>⚠️ Attention</strong><br>
+    Cette action est irréversible !
+  </div>
+
+  <p style="margin-top: 1.5rem; color: var(--text-muted);">
+    Vous êtes sur le point de <strong>supprimer TOUTES les données</strong> de votre compte :
+  </p>
+
+  <ul style="color: var(--text-muted); line-height: 1.8;">
+    <li>🗑️ Tous les lots d'achats</li>
+    <li>🗑️ Tous les produits bruts et articles en stock</li>
+    <li>🗑️ Toutes les ventes enregistrées</li>
+    <li>🗑️ Toutes les charges et dépenses</li>
+    <li>🗑️ Tous les analyses et insights REX</li>
+  </ul>
+
+  <div class="info-missing" style="margin: 1.5rem 0;">
+    Cette opération <strong>ne peut pas être annulée</strong>. Vérifiez bien avant de continuer.
+  </div>
+
+  <div style="display: flex; gap: 1rem; margin-top: 2rem;">
+    <a href="{{ url_for('dashboard.index') }}" class="btn btn-secondary">Annuler</a>
+    <form method="POST" style="flex: 1;">
+      <button type="submit" class="btn btn-danger" style="width: 100%; background: rgba(248, 113, 113, 0.3); color: var(--danger); border-color: var(--danger);">
+        ✓ Confirmer la réinitialisation
+      </button>
+    </form>
+  </div>
+</div>
+
+{% endblock %}

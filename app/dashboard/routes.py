@@ -5,10 +5,11 @@
 
 from datetime import datetime
 
-from flask import Blueprint, render_template
+from flask import Blueprint, render_template, redirect, url_for, flash, request
 from flask_login import login_required, current_user
 
-from app.models import Sale, StockItem, PurchaseLot, RexInsight
+from app.extensions import db
+from app.models import Sale, StockItem, PurchaseLot, RexInsight, Expense, RawProduct, LotInspection
 
 bp = Blueprint("dashboard", __name__)
 
@@ -26,6 +27,9 @@ def index():
 
     ca_month = 0.0
     net_margin = 0.0
+    ca_net = 0.0
+    cout_achat_produits = 0.0
+    frais_variables = 0.0
     ranking = {}  # nom article -> {count, revenue}
 
     for s in sales:
@@ -39,10 +43,23 @@ def index():
         # Marge nette globale.
         net_margin += (s.sale_price - s.fees - s.shipping_cost - buy)
 
+        # ---- Cartes du tableau de bord (vue d'ensemble) ----
+        ca_net += s.sale_price
+        cout_achat_produits += buy
+        frais_variables += (s.fees or 0.0) + (s.shipping_cost or 0.0)
+
         # Agregation pour le top produits.
         entry = ranking.setdefault(name, {"name": name, "count": 0, "revenue": 0.0})
         entry["count"] += 1
         entry["revenue"] += s.sale_price
+
+    # Charges fixes du mois en cours (loyer, logiciels, etc.).
+    fixed_expenses_month = Expense.query.filter_by(user_id=uid, is_fixed=True).filter(
+        Expense.date >= month_start
+    ).all()
+    charges_fixes_mois = sum(e.amount for e in fixed_expenses_month)
+
+    marge_nette_reelle = ca_net - cout_achat_produits - frais_variables - charges_fixes_mois
 
     # Top 5 : tri par nombre de ventes puis CA.
     top_products = sorted(
@@ -54,9 +71,10 @@ def index():
     nb_sold = StockItem.query.filter_by(user_id=uid, status="sold").count()
 
     # ---- ANALYSE DECISIONNELLE (par lot d'achat) ----
-    lots = PurchaseLot.query.filter_by(user_id=uid).all()
+    lots = PurchaseLot.query.filter_by(user_id=uid, is_purchased=True).all()
     by_source = {}   # source -> agregats
     by_combo = {}    # (source, category) -> agregats
+    lot_performance = []  # cartes "Performance par Lot"
 
     for lot in lots:
         inv = lot.total_investment
@@ -67,6 +85,17 @@ def index():
             for it in rp.stock_items:
                 if it.sale is not None:
                     sold += 1
+
+        margin_amount = round(rev - inv, 2)
+        margin_pct = round(margin_amount / inv * 100, 1) if inv else 0.0
+        lot_performance.append({
+            "lot_number": lot.lot_number,
+            "total_cost": lot.total_cost,
+            "remaining_qty": max(qty - sold, 0),
+            "unit_cost": lot.unit_cost,
+            "margin_amount": margin_amount,
+            "margin_pct": margin_pct,
+        })
 
         src = lot.source_platform or "Non renseigne"
         cat = lot.category or "Non renseigne"
@@ -135,6 +164,12 @@ def index():
         "dashboard/index.html",
         ca_month=round(ca_month, 2),
         net_margin=round(net_margin, 2),
+        ca_net=round(ca_net, 2),
+        cout_achat_produits=round(cout_achat_produits, 2),
+        frais_variables=round(frais_variables, 2),
+        charges_fixes_mois=round(charges_fixes_mois, 2),
+        marge_nette_reelle=round(marge_nette_reelle, 2),
+        lot_performance=lot_performance,
         nb_available=nb_available,
         nb_sold=nb_sold,
         top_products=top_products,
@@ -143,3 +178,33 @@ def index():
         provenance_analysis=provenance_analysis,
         lessons=lessons,
     )
+
+
+@bp.route("/reset", methods=["GET", "POST"])
+@login_required
+def reset():
+    """Réinitialiser toutes les données de l'utilisateur."""
+    if request.method == "POST":
+        uid = current_user.id
+
+        # Supprimer toutes les données liées à l'utilisateur
+        Sale.query.filter_by(user_id=uid).delete()
+        StockItem.query.filter_by(user_id=uid).delete()
+        RawProduct.query.filter_by(user_id=uid).delete()
+
+        # Supprimer les inspections et insights des lots
+        lots = PurchaseLot.query.filter_by(user_id=uid).all()
+        for lot in lots:
+            if lot.inspection:
+                db.session.delete(lot.inspection)
+            RexInsight.query.filter_by(lot_id=lot.id).delete()
+
+        PurchaseLot.query.filter_by(user_id=uid).delete()
+        Expense.query.filter_by(user_id=uid).delete()
+        RexInsight.query.filter_by(user_id=uid).delete()
+
+        db.session.commit()
+        flash("Toutes les données ont été réinitialisées ✅", "success")
+        return redirect(url_for("dashboard.index"))
+
+    return render_template("dashboard/reset.html")

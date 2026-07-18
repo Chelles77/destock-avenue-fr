@@ -3,151 +3,111 @@
 {% block title %}Charges Sociales & URSSAF - ReventePro V4{% endblock %}
 
 {% block content %}
-<div class="page-header">
+<div class="page-head">
   <h1>📊 Charges Sociales & URSSAF</h1>
-  <p>Déclarez vos revenus et calculez vos obligations fiscales</p>
 </div>
 
-<!-- Résumé en cartes -->
-<div class="cards-grid">
-  <div class="card card-primary">
-    <div class="card-label">CA Brut (Revenus)</div>
-    <div class="card-value">{{ "%.2f"|format(total_brut) }} €</div>
+<!-- KPI Cards : Résumé -->
+<div class="kpi-grid">
+  <div class="kpi-card kpi-green">
+    <div class="kpi-head">
+      <span class="kpi-label">CA Brut</span>
+      <span class="kpi-icon">💰</span>
+    </div>
+    <div class="kpi-value">{{ "%.2f"|format(total_brut) }} €</div>
+    <div class="kpi-sub">Revenus totaux encaissés</div>
   </div>
-  <div class="card card-warning">
-    <div class="card-label">Charges Sociales ({{ social_rate }}%)</div>
-    <div class="card-value">{{ "%.2f"|format(total_charges) }} €</div>
+  <div class="kpi-card kpi-orange">
+    <div class="kpi-head">
+      <span class="kpi-label">Charges Sociales</span>
+      <span class="kpi-icon">⚠️</span>
+    </div>
+    <div class="kpi-value">{{ "%.2f"|format(total_charges) }} €</div>
+    <div class="kpi-sub">Taux : {{ social_rate }}%</div>
   </div>
-  <div class="card card-success">
-    <div class="card-label">CA Net (Après charges)</div>
-    <div class="card-value">{{ "%.2f"|format(total_net) }} €</div>
+  <div class="kpi-card kpi-cyan">
+    <div class="kpi-head">
+      <span class="kpi-label">CA Net</span>
+      <span class="kpi-icon">✅</span>
+    </div>
+    <div class="kpi-value">{{ "%.2f"|format(total_net) }} €</div>
+    <div class="kpi-sub">Après charges sociales</div>
   </div>
 </div>
 
-<!-- Modifier le taux de charges sociales -->
+<!-- Paramètres URSSAF -->
 <div class="card">
   <h3>⚙️ Paramètres URSSAF</h3>
-  <form method="POST" action="{{ url_for('social_charges.update_rate') }}" class="form-inline">
-    <label for="social_rate">Taux de charges sociales (%) :</label>
-    <input type="number" id="social_rate" name="social_rate" step="0.1" min="0" max="100"
-           value="{{ social_rate }}" required style="width: 80px;">
-    <small style="display: block; margin-top: 0.5rem; color: #6b7280;">
-      Taux par défaut pour auto-entrepreneur : 22.1% | Micro-entreprise : 21% | Libéral : 45%
-    </small>
-    <button type="submit" class="btn btn-sm">Mettre à jour</button>
+  <form method="POST" action="{{ url_for('social_charges.update_rate') }}" class="field">
+    <label for="social_rate" class="field label">Taux de charges sociales (%)</label>
+    <div style="display: flex; gap: 0.75rem; align-items: flex-start;">
+      <div style="flex: 1; max-width: 150px;">
+        <input type="number" id="social_rate" name="social_rate" step="0.1" min="0" max="100"
+               value="{{ social_rate }}" required class="input">
+        <div class="muted" style="font-size: 0.8rem; margin-top: 0.35rem;">
+          Auto-entrepreneur: 22.1% | Micro: 21% | Libéral: 45%
+        </div>
+      </div>
+      <button type="submit" class="btn btn-primary btn-small" style="margin-top: 1.75rem;">Mettre à jour</button>
+    </div>
   </form>
 </div>
 
-<!-- Tableau des transactions -->
+<!-- Détail des ventes -->
 {% if transactions %}
 <div class="card">
-  <h3>📈 Détail des Ventes & Calculs</h3>
-  <div class="table-responsive">
-    <table class="table">
-      <thead>
-        <tr>
-          <th>Date</th>
-          <th>Plateforme</th>
-          <th class="text-right">CA Brut</th>
-          <th class="text-right">Frais Plateforme</th>
-          <th class="text-right">Charges Sociales</th>
-          <th class="text-right">CA Net</th>
-        </tr>
-      </thead>
-      <tbody>
-        {% for tx in transactions %}
-        <tr>
-          <td>{{ tx.date.strftime('%d/%m/%Y') }}</td>
-          <td>{{ tx.platform }}</td>
-          <td class="text-right">{{ "%.2f"|format(tx.brut) }} €</td>
-          <td class="text-right">{{ "%.2f"|format(tx.fees) }} €</td>
-          <td class="text-right text-warning">{{ "%.2f"|format(tx.charges) }} €</td>
-          <td class="text-right text-success">{{ "%.2f"|format(tx.net) }} €</td>
-        </tr>
-        {% endfor %}
-      </tbody>
-      <tfoot>
-        <tr class="table-footer">
-          <td colspan="2"><strong>TOTAL</strong></td>
-          <td class="text-right"><strong>{{ "%.2f"|format(total_brut) }} €</strong></td>
-          <td class="text-right"><strong>-</strong></td>
-          <td class="text-right"><strong>{{ "%.2f"|format(total_charges) }} €</strong></td>
-          <td class="text-right"><strong>{{ "%.2f"|format(total_net) }} €</strong></td>
-        </tr>
-      </tfoot>
-    </table>
-  </div>
+  <h3>📈 Détail des Ventes</h3>
+  <table class="table">
+    <thead>
+      <tr>
+        <th style="text-align: left;">Date</th>
+        <th style="text-align: left;">Plateforme</th>
+        <th style="text-align: right;">CA Brut</th>
+        <th style="text-align: right;">Frais</th>
+        <th style="text-align: right;">Charges</th>
+        <th style="text-align: right;">CA Net</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for tx in transactions %}
+      <tr>
+        <td>{{ tx.date.strftime('%d/%m/%Y') }}</td>
+        <td><span class="badge-brand">{{ tx.platform }}</span></td>
+        <td style="text-align: right;">{{ "%.2f"|format(tx.brut) }} €</td>
+        <td style="text-align: right; color: var(--text-muted);">{{ "%.2f"|format(tx.fees) }} €</td>
+        <td style="text-align: right; color: #fbbf24;">{{ "%.2f"|format(tx.charges) }} €</td>
+        <td style="text-align: right; color: #34d399; font-weight: 600;">{{ "%.2f"|format(tx.net) }} €</td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
 </div>
 {% else %}
-<div class="card">
-  <p style="text-align: center; color: #6b7280;">Aucune vente enregistrée. <a href="{{ url_for('sales.index') }}">Voir les ventes</a></p>
+<div class="card" style="text-align: center; color: var(--text-muted); padding: 2rem;">
+  Aucune vente enregistrée. <a href="{{ url_for('sales.index') }}">Ajouter une vente</a>
 </div>
 {% endif %}
 
-<!-- Guide de déclaration URSSAF/Impôts -->
-<div class="card card-info">
-  <h3>📋 À Déclarer à l'URSSAF/Impôts</h3>
-  <div class="guide-items">
-    <div class="guide-item">
-      <strong>1. Revenu Brut (CA) :</strong>
-      <p><span class="badge badge-primary">{{ "%.2f"|format(total_brut) }} €</span></p>
-      <small>Montant total encaissé avant charges sociales</small>
+<!-- Guide déclaration URSSAF/Impôts -->
+<div class="card">
+  <h3>📋 À Déclarer à l'URSSAF & Impôts</h3>
+  <div class="stats-grid">
+    <div class="stat-card">
+      <span class="stat-label">1️⃣ Revenu Brut</span>
+      <div class="stat-value">{{ "%.2f"|format(total_brut) }} €</div>
+      <div class="muted" style="font-size: 0.75rem; margin-top: 0.25rem;">Total encaissé</div>
     </div>
-    <div class="guide-item">
-      <strong>2. Charges Sociales à Payer :</strong>
-      <p><span class="badge badge-warning">{{ "%.2f"|format(total_charges) }} €</span></p>
-      <small>À verser à l'URSSAF (déductible de vos revenus)</small>
+    <div class="stat-card">
+      <span class="stat-label">2️⃣ Charges Sociales</span>
+      <div class="stat-value">{{ "%.2f"|format(total_charges) }} €</div>
+      <div class="muted" style="font-size: 0.75rem; margin-top: 0.25rem;">À verser à l'URSSAF</div>
     </div>
-    <div class="guide-item">
-      <strong>3. Revenu Net Imposable :</strong>
-      <p><span class="badge badge-success">{{ "%.2f"|format(total_net) }} €</span></p>
-      <small>Montant à déclarer aux impôts (après charges sociales)</small>
+    <div class="stat-card">
+      <span class="stat-label">3️⃣ Revenu Imposable</span>
+      <div class="stat-value">{{ "%.2f"|format(total_net) }} €</div>
+      <div class="muted" style="font-size: 0.75rem; margin-top: 0.25rem;">À déclarer impôts</div>
     </div>
   </div>
 </div>
 
-<style>
-  .page-header { margin-bottom: 2rem; }
-  .page-header h1 { font-size: 2rem; margin-bottom: 0.5rem; }
-  .page-header p { color: #6b7280; font-size: 0.95rem; }
-
-  .cards-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem; margin-bottom: 2rem; }
-  .card { padding: 1.5rem; border-radius: 0.5rem; background: #f9fafb; border: 1px solid #e5e7eb; }
-  .card.card-primary { border-left: 4px solid #3b82f6; }
-  .card.card-success { border-left: 4px solid #10b981; }
-  .card.card-warning { border-left: 4px solid #f59e0b; }
-  .card.card-info { border-left: 4px solid #0ea5e9; }
-  .card h3 { margin-top: 0; margin-bottom: 1rem; font-size: 1.1rem; }
-
-  .card-label { font-size: 0.85rem; color: #6b7280; margin-bottom: 0.5rem; }
-  .card-value { font-size: 1.75rem; font-weight: 700; color: #1f2937; }
-
-  .form-inline { display: flex; align-items: center; gap: 1rem; flex-wrap: wrap; }
-  .form-inline input { padding: 0.5rem 0.75rem; border: 1px solid #d1d5db; border-radius: 0.25rem; }
-  .form-inline .btn { padding: 0.5rem 1rem; background: #3b82f6; color: white; border: none; border-radius: 0.25rem; cursor: pointer; }
-  .form-inline .btn:hover { background: #2563eb; }
-  .btn-sm { font-size: 0.85rem; padding: 0.4rem 0.8rem; }
-
-  .table-responsive { overflow-x: auto; }
-  .table { width: 100%; border-collapse: collapse; }
-  .table thead { background: #f3f4f6; }
-  .table th { padding: 0.75rem; text-align: left; font-weight: 600; border-bottom: 1px solid #e5e7eb; }
-  .table td { padding: 0.75rem; border-bottom: 1px solid #e5e7eb; }
-  .table tbody tr:hover { background: #f9fafb; }
-  .table-footer { background: #f3f4f6; font-weight: 600; }
-  .text-right { text-align: right; }
-  .text-warning { color: #f59e0b; }
-  .text-success { color: #10b981; }
-
-  .badge { display: inline-block; padding: 0.25rem 0.75rem; border-radius: 9999px; font-size: 0.85rem; font-weight: 600; }
-  .badge-primary { background: #dbeafe; color: #1e40af; }
-  .badge-warning { background: #fef3c7; color: #92400e; }
-  .badge-success { background: #dcfce7; color: #166534; }
-
-  .guide-items { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 1.5rem; }
-  .guide-item { padding: 1rem; background: white; border-radius: 0.25rem; }
-  .guide-item strong { display: block; margin-bottom: 0.5rem; }
-  .guide-item .badge { display: block; margin-bottom: 0.5rem; }
-  .guide-item small { display: block; color: #6b7280; margin-top: 0.25rem; }
-</style>
 {% endblock %}

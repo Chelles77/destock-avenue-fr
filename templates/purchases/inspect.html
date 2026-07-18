@@ -1,0 +1,90 @@
+{% extends "base.html" %}
+{% block title %}Tri physique - {{ lot.lot_number }} - ReventePro V4{% endblock %}
+
+{% block content %}
+<div class="page-head">
+  <h1>Tri physique — {{ lot.lot_number }}</h1>
+  <a class="btn" href="{{ url_for('purchases.detail', lot_id=lot.id) }}">Retour</a>
+</div>
+
+{# Rappel provenance : necessaire a un REX precis #}
+{% if lot.source_country %}
+<p class="muted">Provenance : <strong>{{ lot.source_country }}</strong></p>
+{% else %}
+<div class="info-missing">
+  Ajoutez la provenance avant de trier pour un REX precis —
+  <a href="{{ url_for('purchases.edit_info', lot_id=lot.id) }}">renseigner maintenant</a>
+</div>
+{% endif %}
+
+<div class="inspect-layout">
+  {# --- Theorie (donnees d'achat / CSV) --- #}
+  <div class="calc-board">
+    <h3>Theorie (annonce)</h3>
+    <div class="calc-row"><span>Provenance</span><strong>{{ lot.source_country or '-' }}</strong></div>
+    <div class="calc-row"><span>Quantite annoncee</span><strong>{{ lot.quantity }}</strong></div>
+    <div class="calc-row"><span>Prix neuf estime</span><strong>{{ '%.2f'|format(lot.estimated_retail_total) }} EUR</strong></div>
+    <div class="calc-row"><span>Cout total</span><strong>{{ '%.2f'|format(lot.total_cost) }} EUR</strong></div>
+  </div>
+
+  {# --- Realite (checklist de tri) --- #}
+  <form method="post" class="form" novalidate>
+    {{ form.hidden_tag() }}
+    <h3>Realite (tri au depot)</h3>
+
+    <div class="field">
+      {{ form.qty_new.label }}
+      {{ form.qty_new(class="input qty", type="number") }}
+    </div>
+    <div class="field">
+      {{ form.qty_good.label }}
+      {{ form.qty_good(class="input qty", type="number") }}
+    </div>
+    <div class="field">
+      {{ form.qty_damaged.label }}
+      {{ form.qty_damaged(class="input qty", type="number") }}
+    </div>
+    <div class="field">
+      {{ form.qty_parts.label }}
+      {{ form.qty_parts(class="input qty", type="number") }}
+    </div>
+
+    <div class="calc-row big">
+      <span>Total recu</span><strong id="r_total">0</strong>
+      <span>Ecart</span><strong id="r_gap">0</strong>
+    </div>
+
+    <div class="field">
+      {{ form.notes.label }}
+      {{ form.notes(class="input", rows="3") }}
+    </div>
+
+    {{ form.submit(class="btn btn-primary") }}
+  </form>
+</div>
+
+<script>
+  const theo = {{ lot.quantity or 0 }};
+  const val = id => parseInt(document.getElementById(id).value) || 0;
+  function recalc() {
+    const total = val("qty_new") + val("qty_good") + val("qty_damaged") + val("qty_parts");
+    const gap = total - theo;
+    document.getElementById("r_total").textContent = total;
+    const g = document.getElementById("r_gap");
+    g.textContent = (gap > 0 ? "+" : "") + gap;
+    g.style.color = gap < 0 ? "#dc2626" : (gap > 0 ? "#f59e0b" : "#166534");
+  }
+  document.querySelectorAll(".qty").forEach(el => el.addEventListener("input", recalc));
+  recalc();
+</script>
+
+<style>
+  .inspect-layout { display:grid; grid-template-columns:1fr 1fr; gap:2rem; align-items:start; }
+  .calc-board { background:#f9fafb; border:1px solid #e5e7eb; border-radius:8px; padding:1.25rem; }
+  .calc-board h3, .form h3 { margin-top:0; }
+  .calc-row { display:flex; justify-content:space-between; gap:1rem; padding:.5rem 0; border-bottom:1px solid #eef0f2; }
+  .calc-row.big { font-size:1.1rem; border-bottom:none; margin-top:.5rem; }
+  .info-missing { background:#fef3c7; color:#92400e; padding:.6rem .9rem; border-radius:8px; font-weight:600; margin:1rem 0; }
+  @media (max-width:800px){ .inspect-layout { grid-template-columns:1fr; } }
+</style>
+{% endblock %}

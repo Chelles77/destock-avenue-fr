@@ -1,0 +1,27 @@
+{% extends "base.html" %}
+{% block title %}Editer un article - ReventePro V4{% endblock %}
+
+{% block content %}
+<div class="page-head">
+  <h1>Editer : {{ item.name }}</h1>
+  <a class="btn" href="{{ url_for('inventory.stock') }}">Retour</a>
+</div>
+
+<form method="post" class="form" novalidate>
+  {{ form.hidden_tag() }}
+
+  <div class="field">
+    {{ form.marketplace_title.label }}
+    {{ form.marketplace_title(class="input") }}
+    {% for e in form.marketplace_title.errors %}<span class="error">{{ e }}</span>{% endfor %}
+  </div>
+
+  <div class="field">
+    {{ form.sell_price.label }}
+    {{ form.sell_price(class="input", type="number", step="0.01") }}
+    {% for e in form.sell_price.errors %}<span class="error">{{ e }}</span>{% endfor %}
+  </div>
+
+  {{ form.submit(class="btn btn-primary") }}
+</form>
+{% endblock %}

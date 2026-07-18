@@ -1,0 +1,47 @@
+{% extends "base.html" %}
+{% block title %}Infos du lot {{ lot.lot_number }} - ReventePro V4{% endblock %}
+
+{% block content %}
+<div class="page-head">
+  <h1>Infos du lot — {{ lot.lot_number }}</h1>
+  <a class="btn" href="{{ url_for('purchases.detail', lot_id=lot.id) }}">Retour</a>
+</div>
+
+<p class="muted">Ces informations sont optionnelles mais <strong>recommandees</strong> pour un REX precis (analyse par provenance).</p>
+
+<form method="post" class="form" novalidate>
+  {{ form.hidden_tag() }}
+
+  <div class="field">
+    {{ form.source_country.label }}
+    {{ form.source_country(class="input") }}
+    {% for e in form.source_country.errors %}<span class="error">{{ e }}</span>{% endfor %}
+  </div>
+
+  <div class="field">
+    {{ form.category.label }}
+    {{ form.category(class="input", list="categories") }}
+    <datalist id="categories"></datalist>
+  </div>
+
+  <div class="field">
+    {{ form.source_platform.label }}
+    {{ form.source_platform(class="input", list="sources") }}
+    <datalist id="sources"></datalist>
+  </div>
+
+  {{ form.submit(class="btn btn-primary") }}
+</form>
+
+<script>
+  async function fillDatalist(tagType, datalistId) {
+    try {
+      const res = await fetch("{{ url_for('purchases.tags', tag_type='__T__') }}".replace("__T__", tagType));
+      const labels = await res.json();
+      document.getElementById(datalistId).innerHTML = labels.map(l => `<option value="${l}">`).join("");
+    } catch (e) {}
+  }
+  fillDatalist("category", "categories");
+  fillDatalist("source", "sources");
+</script>
+{% endblock %}

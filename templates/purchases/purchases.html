@@ -1,0 +1,64 @@
+{% extends "base.html" %}
+{% block title %}Achats de lots - ReventePro V4{% endblock %}
+
+{% block content %}
+<div class="page-head">
+  <h1>Achats de lots</h1>
+  <div>
+    <a class="btn" href="{{ url_for('purchases.comparative') }}">Historique comparatif</a>
+    <a class="btn btn-primary" href="{{ url_for('purchases.add') }}">+ Nouvelle simulation</a>
+  </div>
+</div>
+
+{% if lots %}
+<table class="table">
+  <thead>
+    <tr>
+      <th>Lot</th>
+      <th>Source</th>
+      <th>Categorie</th>
+      <th>Invest.</th>
+      <th>CA genere</th>
+      <th>ROI</th>
+      <th>Statut</th>
+      <th>Date</th>
+      <th></th>
+    </tr>
+  </thead>
+  <tbody>
+    {% for lot in lots %}
+    <tr>
+      <td>{{ lot.name }}</td>
+      <td>{{ lot.source_platform or '-' }}</td>
+      <td>{{ lot.category or '-' }}</td>
+      <td>{{ '%.2f'|format(lot.total_investment) }} EUR</td>
+      <td>{{ '%.2f'|format(lot.generated_revenue) }} EUR</td>
+      <td>
+        <span class="{{ 'badge-green' if lot.is_profitable else 'badge-red' }}">
+          {{ lot.roi_percent }} %
+        </span>
+      </td>
+      <td>{{ 'Achete' if lot.is_purchased else 'Simule' }}</td>
+      <td>{{ lot.date.strftime('%d/%m/%Y') }}</td>
+      <td><a class="btn btn-small" href="{{ url_for('purchases.detail', lot_id=lot.id) }}">Detail</a></td>
+    </tr>
+    {% endfor %}
+  </tbody>
+</table>
+
+{% if pagination.pages > 1 %}
+<div class="pagination">
+  {% if pagination.has_prev %}
+    <a href="{{ url_for('purchases.index', page=pagination.prev_num) }}">&laquo; Precedent</a>
+  {% endif %}
+  <span>Page {{ pagination.page }} / {{ pagination.pages }}</span>
+  {% if pagination.has_next %}
+    <a href="{{ url_for('purchases.index', page=pagination.next_num) }}">Suivant &raquo;</a>
+  {% endif %}
+</div>
+{% endif %}
+
+{% else %}
+<p class="muted">Aucun lot enregistre. Commencez par en ajouter un.</p>
+{% endif %}
+{% endblock %}

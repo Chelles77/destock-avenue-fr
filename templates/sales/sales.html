@@ -1,0 +1,78 @@
+{% extends "base.html" %}
+{% block title %}Ventes - ReventePro V4{% endblock %}
+
+{% block content %}
+<div class="page-head">
+  <h1>Ventes</h1>
+</div>
+
+{# Filtres plateforme + date #}
+<form method="get" class="filters">
+  <select name="platform" class="input">
+    <option value="">Toutes plateformes</option>
+    {% for p in platforms %}
+      <option value="{{ p }}" {{ 'selected' if current_platform == p }}>{{ p }}</option>
+    {% endfor %}
+  </select>
+  <input type="date" name="date" value="{{ current_date or '' }}" class="input">
+  <button type="submit" class="btn btn-small">Filtrer</button>
+  <a class="btn btn-small" href="{{ url_for('sales.index') }}">Reset</a>
+</form>
+
+{% if sales %}
+<table class="table">
+  <thead>
+    <tr>
+      <th>Date</th>
+      <th>Article</th>
+      <th>Plateforme</th>
+      <th>Prix</th>
+      <th>Frais</th>
+      <th>Port</th>
+      <th>Marge nette</th>
+      <th></th>
+    </tr>
+  </thead>
+  <tbody>
+    {% for s in sales %}
+    <tr>
+      <td>{{ s.sale_date.strftime('%d/%m/%Y') }}</td>
+      <td>{{ s.stock_item.marketplace_title if s.stock_item else '(article supprime)' }}</td>
+      <td>{{ s.platform }}</td>
+      <td>{{ '%.2f'|format(s.sale_price) }} EUR</td>
+      <td>{{ '%.2f'|format(s.fees) }} EUR</td>
+      <td>{{ '%.2f'|format(s.shipping_cost) }} EUR</td>
+      <td>
+        {% if s.net_profit is not none %}
+          <strong class="{{ 'badge-green' if s.net_profit >= 0 else 'badge-red' }}">
+            {{ '%.2f'|format(s.net_profit) }} EUR
+          </strong>
+        {% else %}-{% endif %}
+      </td>
+      <td>
+        <a class="btn btn-small" href="{{ url_for('sales.edit', sale_id=s.id) }}">Editer</a>
+        <a class="btn btn-small btn-danger"
+           href="{{ url_for('sales.cancel', sale_id=s.id) }}"
+           onclick="return confirm('Annuler cette vente et remettre l article en stock ?');">Annuler</a>
+      </td>
+    </tr>
+    {% endfor %}
+  </tbody>
+</table>
+
+{% if pagination.pages > 1 %}
+<div class="pagination">
+  {% if pagination.has_prev %}
+    <a href="{{ url_for('sales.index', page=pagination.prev_num, platform=current_platform, date=current_date) }}">&laquo; Precedent</a>
+  {% endif %}
+  <span>Page {{ pagination.page }} / {{ pagination.pages }}</span>
+  {% if pagination.has_next %}
+    <a href="{{ url_for('sales.index', page=pagination.next_num, platform=current_platform, date=current_date) }}">Suivant &raquo;</a>
+  {% endif %}
+</div>
+{% endif %}
+
+{% else %}
+<p class="muted">Aucune vente pour ce filtre.</p>
+{% endif %}
+{% endblock %}

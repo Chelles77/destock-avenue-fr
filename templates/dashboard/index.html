@@ -1,0 +1,135 @@
+{% extends "base.html" %}
+{% block title %}Tableau de bord - ReventePro V4{% endblock %}
+
+{% block content %}
+<h1>Tableau de bord</h1>
+<p class="muted">Bienvenue, <strong>{{ current_user.email }}</strong>.</p>
+
+<div class="stats-grid">
+  <div class="stat-card">
+    <div class="stat-label">CA du mois</div>
+    <div class="stat-value">{{ '%.2f'|format(ca_month) }} EUR</div>
+  </div>
+  <div class="stat-card">
+    <div class="stat-label">Marge nette totale</div>
+    <div class="stat-value {{ 'badge-green' if net_margin >= 0 else 'badge-red' }}">
+      {{ '%.2f'|format(net_margin) }} EUR
+    </div>
+  </div>
+  <div class="stat-card">
+    <div class="stat-label">Articles disponibles</div>
+    <div class="stat-value">{{ nb_available }}</div>
+  </div>
+  <div class="stat-card">
+    <div class="stat-label">Articles vendus</div>
+    <div class="stat-value">{{ nb_sold }}</div>
+  </div>
+</div>
+
+<h2>Top 5 des articles les plus vendus</h2>
+{% if top_products %}
+<table class="table">
+  <thead>
+    <tr><th>Article</th><th>Ventes</th><th>CA genere</th></tr>
+  </thead>
+  <tbody>
+    {% for p in top_products %}
+    <tr>
+      <td>{{ p.name }}</td>
+      <td>{{ p.count }}</td>
+      <td>{{ '%.2f'|format(p.revenue) }} EUR</td>
+    </tr>
+    {% endfor %}
+  </tbody>
+</table>
+{% else %}
+<p class="muted">Aucune vente enregistree pour l'instant.</p>
+{% endif %}
+
+<h2>Analyse par source</h2>
+{% if source_analysis %}
+<table class="table">
+  <thead>
+    <tr><th>Source</th><th>Marge %</th><th>Rotation (ecoulement)</th></tr>
+  </thead>
+  <tbody>
+    {% for s in source_analysis %}
+    <tr>
+      <td>{{ s.source }}</td>
+      <td><span class="{{ 'badge-green' if s.margin >= 0 else 'badge-red' }}">{{ s.margin }} %</span></td>
+      <td>{{ s.rotation }} %</td>
+    </tr>
+    {% endfor %}
+  </tbody>
+</table>
+{% else %}
+<p class="muted">Aucun lot analysable pour l'instant.</p>
+{% endif %}
+
+<h2>Top combinaisons (Source + Categorie)</h2>
+{% if top_combos %}
+<table class="table">
+  <thead>
+    <tr><th>Source</th><th>Categorie</th><th>Profit</th></tr>
+  </thead>
+  <tbody>
+    {% for c in top_combos %}
+    <tr>
+      <td>{{ c.source }}</td>
+      <td>{{ c.category }}</td>
+      <td><strong class="{{ 'badge-green' if c.profit >= 0 else 'badge-red' }}">{{ '%.2f'|format(c.profit) }} EUR</strong></td>
+    </tr>
+    {% endfor %}
+  </tbody>
+</table>
+{% else %}
+<p class="muted">Pas encore de combinaison a analyser.</p>
+{% endif %}
+
+<h2>Analyse par provenance</h2>
+{% if provenance_analysis %}
+<table class="table">
+  <thead>
+    <tr><th>Pays</th><th>Nb lots</th><th>Taux casse moyen</th><th>Marge reelle moyenne</th></tr>
+  </thead>
+  <tbody>
+    {% for p in provenance_analysis %}
+    <tr>
+      <td>{{ p.pays }}</td>
+      <td>{{ p.nb }}</td>
+      <td>{% if p.avg_damage is not none %}<span class="{{ 'badge-red' if p.avg_damage > 20 else '' }}">{{ p.avg_damage }} %</span>{% else %}-{% endif %}</td>
+      <td><span class="{{ 'badge-green' if p.avg_margin >= 0 else 'badge-red' }}">{{ p.avg_margin }} %</span></td>
+    </tr>
+    {% endfor %}
+  </tbody>
+</table>
+{% else %}
+<p class="muted">Aucun lot a analyser par provenance.</p>
+{% endif %}
+
+<h2>Lecons apprises (REX)</h2>
+{% set sev = {'positive': 'ok', 'warning': 'ko', 'info': 'mid'} %}
+{% if lessons %}
+<div class="insights">
+  {% for l in lessons %}
+    <div class="insight insight-{{ sev.get(l.severity, 'mid') }}">{{ l.message }}</div>
+  {% endfor %}
+</div>
+{% else %}
+<p class="muted">Aucun insight REX pour l'instant. Triez un lot pour en generer.</p>
+{% endif %}
+
+<style>
+  .insights { margin:1rem 0; display:flex; flex-direction:column; gap:.5rem; }
+  .insight { padding:.6rem .9rem; border-radius:8px; font-weight:600; }
+  .insight-ok { background:#dcfce7; color:#166534; }
+  .insight-ko { background:#fee2e2; color:#991b1b; }
+  .insight-mid { background:#eff6ff; color:#1e40af; }
+  /* Stats - CSS de base autonome */
+  .stats-grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(180px,1fr));
+    gap:1rem; margin:1.5rem 0; }
+  .stat-card { background:#f9fafb; border:1px solid #e5e7eb; border-radius:8px; padding:1rem 1.25rem; }
+  .stat-label { font-size:.85rem; color:#6b7280; margin-bottom:.35rem; }
+  .stat-value { font-size:1.6rem; font-weight:700; }
+</style>
+{% endblock %}

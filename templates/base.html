@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>{% block title %}ReventePro V4{% endblock %}</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+  <nav class="navbar">
+    <a class="brand" href="{{ url_for('dashboard.index') }}">ReventePro V4</a>
+    <div class="nav-links">
+      {% if current_user.is_authenticated %}
+        <a href="{{ url_for('dashboard.index') }}">Dashboard</a>
+        <a href="{{ url_for('inventory.raw_products') }}">Produits Bruts</a>
+        <a href="{{ url_for('inventory.stock') }}">Stock</a>
+        <a href="{{ url_for('sales.index') }}">Ventes</a>
+        <a href="{{ url_for('purchases.add') }}">Simulateur</a>
+        <a href="{{ url_for('purchases.index') }}">Achats</a>
+        <a href="{{ url_for('finance.index') }}">Finance</a>
+        <a href="{{ url_for('social_charges.index') }}">URSSAF/Impôts</a>
+        <a href="{{ url_for('analytics.index') }}">Analytique</a>
+        <span class="nav-user">{{ current_user.email }}</span>
+        <a href="{{ url_for('auth.logout') }}">Deconnexion</a>
+      {% else %}
+        <a href="{{ url_for('auth.login') }}">Connexion</a>
+        <a href="{{ url_for('auth.register') }}">Inscription</a>
+      {% endif %}
+    </div>
+  </nav>
+
+  <style>
+    /* Barre de navigation - CSS de base, autonome */
+    .navbar { position: sticky; top: 0; z-index: 1000;
+      display:flex; align-items:center; gap:1rem; flex-wrap:wrap;
+      padding:.75rem 1.25rem; background:#1f2937; color:#fff; box-shadow: 0 2px 8px rgba(0,0,0,0.3); }
+    .navbar .brand { font-weight:700; color:#fff; text-decoration:none; margin-right:1rem; }
+    .navbar .nav-links { display:flex; align-items:center; gap:1rem; flex-wrap:wrap; margin-left:auto; }
+    .navbar a { color:#d1d5db; text-decoration:none; font-size:.95rem; }
+    .navbar a:hover { color:#fff; }
+    .navbar .nav-user { color:#9ca3af; font-size:.85rem; }
+  </style>
+
+  <main class="container">
+    {% with messages = get_flashed_messages(with_categories=true) %}
+      {% if messages %}
+        <div class="flashes">
+          {% for category, message in messages %}
+            <div class="flash flash-{{ category }}">{{ message }}</div>
+          {% endfor %}
+        </div>
+      {% endif %}
+    {% endwith %}
+
+    {% block content %}{% endblock %}
+  </main>
+
+  <script src="{{ url_for('static', filename='js/main.js') }}"></script>
+  {% block scripts %}{% endblock %}
+</body>
+</html>

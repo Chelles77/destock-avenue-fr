@@ -1,0 +1,70 @@
+{% extends "base.html" %}
+{% block title %}Stock - ReventePro V4{% endblock %}
+
+{% block content %}
+<div class="page-head">
+  <h1>Stock</h1>
+</div>
+
+{# Filtres par statut #}
+<div class="filters">
+  <a class="btn btn-small {{ 'active' if not current_status }}" href="{{ url_for('inventory.stock') }}">Tous</a>
+  <a class="btn btn-small {{ 'active' if current_status == 'draft' }}" href="{{ url_for('inventory.stock', status='draft') }}">Brouillons</a>
+  <a class="btn btn-small {{ 'active' if current_status == 'available' }}" href="{{ url_for('inventory.stock', status='available') }}">Disponibles</a>
+  <a class="btn btn-small {{ 'active' if current_status == 'sold' }}" href="{{ url_for('inventory.stock', status='sold') }}">Vendus</a>
+</div>
+
+{% set badges = {'draft': 'badge-gray', 'available': 'badge-green', 'sold': 'badge-red', 'archived': 'badge-gray'} %}
+
+{% if items %}
+<table class="table">
+  <thead>
+    <tr>
+      <th>Titre marketplace</th>
+      <th>Etat</th>
+      <th>Achat</th>
+      <th>Vente</th>
+      <th>Statut</th>
+      <th></th>
+    </tr>
+  </thead>
+  <tbody>
+    {% for it in items %}
+    <tr>
+      <td>{{ it.marketplace_title or it.name }}</td>
+      <td>{{ it.condition or '-' }}</td>
+      <td>{{ '%.2f'|format(it.buy_price) }} EUR</td>
+      <td>{{ '%.2f'|format(it.sell_price) }} EUR</td>
+      <td><span class="badge {{ badges.get(it.status, 'badge-gray') }}">{{ it.status }}</span></td>
+      <td>
+        <a class="btn btn-small"
+           href="{{ url_for('inventory.edit_stock', stock_item_id=it.id, status=current_status) }}">Editer</a>
+        {% if it.status == 'draft' %}
+          <a class="btn btn-small btn-primary"
+             href="{{ url_for('inventory.publish', stock_item_id=it.id, status=current_status) }}">Publier</a>
+        {% elif it.status == 'available' %}
+          <a class="btn btn-small btn-primary"
+             href="{{ url_for('sales.add', stock_item_id=it.id) }}">Vendre</a>
+        {% endif %}
+      </td>
+    </tr>
+    {% endfor %}
+  </tbody>
+</table>
+
+{% if pagination.pages > 1 %}
+<div class="pagination">
+  {% if pagination.has_prev %}
+    <a href="{{ url_for('inventory.stock', page=pagination.prev_num, status=current_status) }}">&laquo; Precedent</a>
+  {% endif %}
+  <span>Page {{ pagination.page }} / {{ pagination.pages }}</span>
+  {% if pagination.has_next %}
+    <a href="{{ url_for('inventory.stock', page=pagination.next_num, status=current_status) }}">Suivant &raquo;</a>
+  {% endif %}
+</div>
+{% endif %}
+
+{% else %}
+<p class="muted">Aucun article pour ce filtre.</p>
+{% endif %}
+{% endblock %}

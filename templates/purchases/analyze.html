@@ -1,0 +1,70 @@
+{% extends "base.html" %}
+{% block title %}Analyse du lot {{ lot.lot_number }} - ReventePro V4{% endblock %}
+
+{% block content %}
+<div class="page-head">
+  <h1>Analyse ponderee — {{ lot.lot_number }}</h1>
+  <a class="btn" href="{{ url_for('purchases.detail', lot_id=lot.id) }}">Retour</a>
+</div>
+
+{# Note globale /20 + badges de concentration risque #}
+<div class="score-head">
+  <div class="score-big">
+    {{ global_score }}<span class="score-max">/20</span>
+  </div>
+  <div class="badges">
+    {% for label, kind in badges %}
+      <span class="risk-badge risk-{{ kind }}">
+        {{ '⚠️' if kind == 'warning' else '💎' }} {{ label }}
+      </span>
+    {% endfor %}
+  </div>
+</div>
+<p class="muted">{{ total_qty }} piece(s) analysee(s) · note = moyenne des notes ponderee par quantite.</p>
+
+{% if rows %}
+<table class="table">
+  <thead>
+    <tr>
+      <th>Groupe produit</th>
+      <th>Qte</th>
+      <th>Poids dans le lot</th>
+      <th>Prix unit.</th>
+      <th>Note</th>
+      <th>Impact</th>
+    </tr>
+  </thead>
+  <tbody>
+    {% for r in rows %}
+    <tr class="row-{{ r.color }}">
+      <td>{{ r.name }}</td>
+      <td>{{ r.qty }}</td>
+      <td>{{ r.pct }} %</td>
+      <td>{{ '%.2f'|format(r.unit_price) }} EUR</td>
+      <td><strong>{{ r.note }}/10</strong></td>
+      <td>
+        {% if r.color == 'green' %}Contributeur positif
+        {% elif r.color == 'red' %}Plombeur de note
+        {% else %}Neutre{% endif %}
+      </td>
+    </tr>
+    {% endfor %}
+  </tbody>
+</table>
+{% else %}
+<p class="muted">Aucun produit rattache a ce lot. Ajoutez des produits bruts lies au lot pour l'analyser.</p>
+{% endif %}
+
+<style>
+  .score-head { display:flex; align-items:center; gap:1.5rem; flex-wrap:wrap; margin:1rem 0; }
+  .score-big { font-size:2.6rem; font-weight:800; }
+  .score-max { font-size:1.1rem; color:#6b7280; font-weight:600; }
+  .badges { display:flex; gap:.6rem; flex-wrap:wrap; }
+  .risk-badge { padding:.45rem .8rem; border-radius:999px; font-weight:700; font-size:.9rem; }
+  .risk-warning { background:#fee2e2; color:#991b1b; }
+  .risk-positive { background:#dcfce7; color:#166534; }
+  .row-green td { background:#f0fdf4; }
+  .row-red td { background:#fef2f2; }
+  .row-neutral td { background:#fff; }
+</style>
+{% endblock %}

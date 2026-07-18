@@ -1,0 +1,53 @@
+{% extends "base.html" %}
+{% block title %}Produits bruts - ReventePro V4{% endblock %}
+
+{% block content %}
+<div class="page-head">
+  <h1>Produits bruts</h1>
+  <a class="btn btn-primary" href="{{ url_for('inventory.add_raw_product') }}">+ Ajouter</a>
+</div>
+
+{% if items %}
+<table class="table">
+  <thead>
+    <tr>
+      <th>Nom</th>
+      <th>Fournisseur</th>
+      <th>Prix coutant</th>
+      <th>Qte</th>
+      <th>Lot</th>
+      <th>Ajoute le</th>
+      <th></th>
+    </tr>
+  </thead>
+  <tbody>
+    {% for p in items %}
+    <tr>
+      <td>{{ p.name }}</td>
+      <td>{{ p.supplier or '-' }}</td>
+      <td>{{ '%.2f'|format(p.cost_price) }} EUR</td>
+      <td>{{ p.quantity }}</td>
+      <td>{{ p.purchase_lot.name if p.purchase_lot else '-' }}</td>
+      <td>{{ p.date_added.strftime('%d/%m/%Y') }}</td>
+      <td><a class="btn btn-small" href="{{ url_for('inventory.prepare', raw_product_id=p.id) }}">Preparer</a></td>
+    </tr>
+    {% endfor %}
+  </tbody>
+</table>
+
+{% if pagination.pages > 1 %}
+<div class="pagination">
+  {% if pagination.has_prev %}
+    <a href="{{ url_for('inventory.raw_products', page=pagination.prev_num) }}">&laquo; Precedent</a>
+  {% endif %}
+  <span>Page {{ pagination.page }} / {{ pagination.pages }}</span>
+  {% if pagination.has_next %}
+    <a href="{{ url_for('inventory.raw_products', page=pagination.next_num) }}">Suivant &raquo;</a>
+  {% endif %}
+</div>
+{% endif %}
+
+{% else %}
+<p class="muted">Aucun produit brut. Commencez par en ajouter un.</p>
+{% endif %}
+{% endblock %}

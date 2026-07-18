@@ -1,0 +1,150 @@
+{% extends "base.html" %}
+{% block title %}Lot {{ lot.lot_number }} - ReventePro V4{% endblock %}
+
+{% block content %}
+<div class="page-head">
+  <h1>Lot {{ lot.lot_number }}</h1>
+  <div>
+    <a class="btn" href="{{ url_for('purchases.analyze', lot_id=lot.id) }}">Analyser</a>
+    <a class="btn btn-primary" href="{{ url_for('purchases.inspect', lot_id=lot.id) }}">
+      {{ 'Re-trier' if lot.inspection else 'Trier (REX)' }}
+    </a>
+    <a class="btn" href="{{ url_for('purchases.comparative') }}">Comparatif</a>
+    <a class="btn" href="{{ url_for('purchases.index') }}">Retour</a>
+  </div>
+</div>
+
+{# Infos post-reception : indispensables pour un REX precis #}
+{% if not lot.source_country %}
+<div class="info-missing">
+  ⚠️ Infos manquantes pour REX —
+  <a href="{{ url_for('purchases.edit_info', lot_id=lot.id) }}">renseigner la provenance</a>
+</div>
+{% else %}
+<p class="muted">
+  Provenance : <strong>{{ lot.source_country }}</strong> ·
+  Categorie : <strong>{{ lot.category or '-' }}</strong> ·
+  Source : <strong>{{ lot.source_platform or '-' }}</strong> ·
+  <a href="{{ url_for('purchases.edit_info', lot_id=lot.id) }}">modifier</a>
+</p>
+{% endif %}
+
+{% set vclass = {'OPPORTUNITE': 'ok', 'CORRECT': 'mid', 'RISQUE': 'ko'} %}
+<div class="verdict verdict-{{ vclass.get(lot.verdict, 'mid') }}">
+  {{ verdict_label }} — Coefficient x{{ coeff }}
+  <span class="muted">({{ 'Achete' if lot.is_purchased else 'Simulation' }})</span>
+</div>
+<p class="muted">{{ message }}</p>
+
+<h2>Simulation (revente estimee a 30% du neuf)</h2>
+<div class="stats-grid">
+  <div class="stat-card">
+    <div class="stat-label">Prix neuf affiche</div>
+    <div class="stat-value">{{ '%.2f'|format(lot.estimated_retail_total) }} EUR</div>
+  </div>
+  <div class="stat-card">
+    <div class="stat-label">CA revente estime (30%)</div>
+    <div class="stat-value">{{ '%.2f'|format(ca_revente) }} EUR</div>
+  </div>
+  <div class="stat-card">
+    <div class="stat-label">Cout total</div>
+    <div class="stat-value">{{ '%.2f'|format(lot.total_cost) }} EUR</div>
+  </div>
+  <div class="stat-card">
+    <div class="stat-label">Coefficient</div>
+    <div class="stat-value {{ 'badge-green' if coeff >= 2 else 'badge-red' }}">x{{ coeff }}</div>
+  </div>
+  <div class="stat-card">
+    <div class="stat-label">Prix de revient / piece</div>
+    <div class="stat-value">{{ '%.2f'|format(lot.unit_cost) }} EUR</div>
+  </div>
+  <div class="stat-card">
+    <div class="stat-label">Revente / piece</div>
+    <div class="stat-value">{{ '%.2f'|format(unit_sale) }} EUR</div>
+  </div>
+  <div class="stat-card">
+    <div class="stat-label">Marge brute</div>
+    <div class="stat-value {{ 'badge-green' if gross_margin >= 0 else 'badge-red' }}">
+      {{ '%.2f'|format(gross_margin) }} EUR
+    </div>
+  </div>
+  <div class="stat-card">
+    <div class="stat-label">ROI estime</div>
+    <div class="stat-value {{ 'badge-green' if roi >= 0 else 'badge-red' }}">{{ roi }} %</div>
+  </div>
+</div>
+
+<p class="muted">
+  {{ lot.quantity }} piece(s) · Enchere : {{ '%.2f'|format(lot.bid_price) }} EUR ·
+  Frais encheres : {{ lot.auction_fee_percent }} % · Port : {{ '%.2f'|format(lot.shipping_cost) }} EUR
+</p>
+
+<h2>Suivi reel (post-vente)</h2>
+<div class="stats-grid">
+  <div class="stat-card">
+    <div class="stat-label">Investissement</div>
+    <div class="stat-value">{{ '%.2f'|format(lot.total_investment) }} EUR</div>
+  </div>
+  <div class="stat-card">
+    <div class="stat-label">CA genere</div>
+    <div class="stat-value">{{ '%.2f'|format(lot.generated_revenue) }} EUR</div>
+  </div>
+  <div class="stat-card">
+    <div class="stat-label">ROI reel</div>
+    <div class="stat-value {{ 'badge-green' if lot.is_profitable else 'badge-red' }}">
+      {{ lot.roi_percent }} %
+    </div>
+  </div>
+</div>
+
+{# ---- REX Tri Physique (si inspection realisee) ---- #}
+{% if lot.inspection %}
+{% set insp = lot.inspection %}
+<h2>REX — Tri physique</h2>
+<div class="stats-grid">
+  <div class="stat-card">
+    <div class="stat-label">Recu / annonce</div>
+    <div class="stat-value">{{ insp.qty_total_received }} / {{ lot.quantity }}</div>
+  </div>
+  <div class="stat-card">
+    <div class="stat-label">Taux neuf</div>
+    <div class="stat-value">{{ insp.rate_new }} %</div>
+  </div>
+  <div class="stat-card">
+    <div class="stat-label">Taux casse</div>
+    <div class="stat-value {{ 'badge-red' if insp.rate_damaged > 20 else '' }}">{{ insp.rate_damaged }} %</div>
+  </div>
+  <div class="stat-card">
+    <div class="stat-label">Score qualite</div>
+    <div class="stat-value">{{ insp.quality_score }}/10</div>
+  </div>
+</div>
+<p class="muted">
+  Neuf {{ insp.qty_new }} · Bon {{ insp.qty_good }} · Casse {{ insp.qty_damaged }} · Pieces {{ insp.qty_parts }}
+  {% if insp.notes %}<br>Observations : {{ insp.notes }}{% endif %}
+</p>
+
+{% set sev = {'positive': 'ok', 'warning': 'ko', 'info': 'mid'} %}
+<div class="insights">
+  {% for ri in lot.rex_insights %}
+    <div class="insight insight-{{ sev.get(ri.severity, 'mid') }}">{{ ri.message }}</div>
+  {% else %}
+    <p class="muted">Aucun insight genere.</p>
+  {% endfor %}
+</div>
+{% endif %}
+
+<style>
+  .verdict { padding:.75rem 1rem; border-radius:8px; font-weight:700; margin:1rem 0; }
+  .verdict-ok { background:#dcfce7; color:#166534; }
+  .verdict-ko { background:#fee2e2; color:#991b1b; }
+  .verdict-mid { background:#fef9c3; color:#854d0e; }
+  .insights { margin:1rem 0; display:flex; flex-direction:column; gap:.5rem; }
+  .insight { padding:.6rem .9rem; border-radius:8px; font-weight:600; }
+  .insight-ok { background:#dcfce7; color:#166534; }
+  .insight-ko { background:#fee2e2; color:#991b1b; }
+  .insight-mid { background:#eff6ff; color:#1e40af; }
+  .info-missing { background:#fef3c7; color:#92400e; padding:.6rem .9rem; border-radius:8px; font-weight:600; margin:1rem 0; }
+</style>
+{% endblock %}
+{% endblock %}

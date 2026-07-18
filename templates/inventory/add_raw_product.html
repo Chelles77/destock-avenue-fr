@@ -1,0 +1,45 @@
+{% extends "base.html" %}
+{% block title %}Ajouter un produit brut - ReventePro V4{% endblock %}
+
+{% block content %}
+<div class="page-head">
+  <h1>Ajouter un produit brut</h1>
+  <a class="btn" href="{{ url_for('inventory.raw_products') }}">Retour</a>
+</div>
+
+<form method="post" class="form" novalidate>
+  {{ form.hidden_tag() }}  {# jeton CSRF #}
+
+  <div class="field">
+    {{ form.name.label }}
+    {{ form.name(class="input") }}
+    {% for e in form.name.errors %}<span class="error">{{ e }}</span>{% endfor %}
+  </div>
+
+  <div class="field">
+    {{ form.supplier.label }}
+    {{ form.supplier(class="input") }}
+    {% for e in form.supplier.errors %}<span class="error">{{ e }}</span>{% endfor %}
+  </div>
+
+  <div class="field">
+    {{ form.cost_price.label }}
+    {{ form.cost_price(class="input", type="number", step="0.01") }}
+    {% for e in form.cost_price.errors %}<span class="error">{{ e }}</span>{% endfor %}
+  </div>
+
+  <div class="field">
+    {{ form.quantity.label }}
+    {{ form.quantity(class="input", type="number") }}
+    {% for e in form.quantity.errors %}<span class="error">{{ e }}</span>{% endfor %}
+  </div>
+
+  <div class="field">
+    {{ form.purchase_lot_id.label }}
+    {{ form.purchase_lot_id(class="input") }}
+    {% for e in form.purchase_lot_id.errors %}<span class="error">{{ e }}</span>{% endfor %}
+  </div>
+
+  {{ form.submit(class="btn btn-primary") }}
+</form>
+{% endblock %}

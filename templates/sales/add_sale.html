@@ -1,0 +1,57 @@
+{% extends "base.html" %}
+{% block title %}{{ 'Editer' if edit_mode else 'Enregistrer' }} une vente - ReventePro V4{% endblock %}
+
+{% block content %}
+<div class="page-head">
+  <h1>{{ 'Editer la vente' if edit_mode else 'Enregistrer une vente' }}</h1>
+  <a class="btn" href="{{ url_for('sales.index') }}">Retour</a>
+</div>
+
+{% if item %}
+<p class="muted">Article : <strong>{{ item.marketplace_title or item.name }}</strong>
+  {% if item.buy_price %}(achat : {{ '%.2f'|format(item.buy_price) }} EUR){% endif %}
+</p>
+{% endif %}
+
+<form method="post" class="form" novalidate>
+  {{ form.hidden_tag() }}
+
+  <div class="field">
+    {{ form.sale_price.label }}
+    {{ form.sale_price(class="input", type="number", step="0.01") }}
+    {% for e in form.sale_price.errors %}<span class="error">{{ e }}</span>{% endfor %}
+  </div>
+
+  <div class="field">
+    {{ form.platform.label }}
+    {{ form.platform(class="input") }}
+    {% for e in form.platform.errors %}<span class="error">{{ e }}</span>{% endfor %}
+  </div>
+
+  <div class="field">
+    {{ form.fees.label }}
+    {{ form.fees(class="input", type="number", step="0.01") }}
+    {% for e in form.fees.errors %}<span class="error">{{ e }}</span>{% endfor %}
+  </div>
+
+  <div class="field">
+    {{ form.shipping_cost.label }}
+    {{ form.shipping_cost(class="input", type="number", step="0.01") }}
+    {% for e in form.shipping_cost.errors %}<span class="error">{{ e }}</span>{% endfor %}
+  </div>
+
+  <div class="field">
+    {{ form.sale_date.label }}
+    {{ form.sale_date(class="input") }}
+    {% for e in form.sale_date.errors %}<span class="error">{{ e }}</span>{% endfor %}
+  </div>
+
+  <div class="field">
+    {{ form.buyer_info.label }}
+    {{ form.buyer_info(class="input", rows="3") }}
+    {% for e in form.buyer_info.errors %}<span class="error">{{ e }}</span>{% endfor %}
+  </div>
+
+  {{ form.submit(class="btn btn-primary") }}
+</form>
+{% endblock %}

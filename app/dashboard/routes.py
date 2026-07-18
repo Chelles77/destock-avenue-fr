@@ -185,6 +185,13 @@ def index():
 def reset():
     """Réinitialiser toutes les données de l'utilisateur."""
     if request.method == "POST":
+        password = request.form.get("password")
+
+        # Vérifier le mot de passe
+        if not password or not current_user.check_password(password):
+            flash("❌ Mot de passe incorrect", "danger")
+            return render_template("dashboard/reset.html")
+
         uid = current_user.id
 
         # Supprimer toutes les données liées à l'utilisateur
@@ -204,7 +211,7 @@ def reset():
         RexInsight.query.filter_by(user_id=uid).delete()
 
         db.session.commit()
-        flash("Toutes les données ont été réinitialisées ✅", "success")
+        flash("✅ Toutes les données ont été réinitialisées", "success")
         return redirect(url_for("dashboard.index"))
 
     return render_template("dashboard/reset.html")

@@ -29,14 +29,19 @@
     Cette opération <strong>ne peut pas être annulée</strong>. Vérifiez bien avant de continuer.
   </div>
 
-  <div style="display: flex; gap: 1rem; margin-top: 2rem;">
-    <a href="{{ url_for('dashboard.index') }}" class="btn btn-secondary">Annuler</a>
-    <form method="POST" style="flex: 1;">
-      <button type="submit" class="btn btn-danger" style="width: 100%; background: rgba(248, 113, 113, 0.3); color: var(--danger); border-color: var(--danger);">
+  <form method="POST" style="margin-top: 2rem;">
+    <div class="field">
+      <label for="password" class="field label">🔐 Confirmez avec votre mot de passe</label>
+      <input type="password" id="password" name="password" required class="input" placeholder="Entrez votre mot de passe">
+    </div>
+
+    <div style="display: flex; gap: 1rem; margin-top: 2rem;">
+      <a href="{{ url_for('dashboard.index') }}" class="btn btn-secondary">Annuler</a>
+      <button type="submit" class="btn btn-danger" style="flex: 1; background: rgba(248, 113, 113, 0.3); color: var(--danger); border-color: var(--danger);">
         ✓ Confirmer la réinitialisation
       </button>
-    </form>
-  </div>
+    </div>
+  </form>
 </div>
 
 {% endblock %}

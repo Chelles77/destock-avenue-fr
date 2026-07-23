@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Destock Avenue FR - Les Meilleures Affaires, Prix Cassés</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        :root {
+            --bg: #ffffff; --bg-alt: #f5f5f5; --text: #1a1a1a; --text-light: #666;
+            --border: #e0e0e0; --primary: #ff2e2e; --accent: #ffd700;
+        }
+        @media (prefers-color-scheme: dark) {
+            :root { --bg: #0f0f0f; --bg-alt: #1a1a1a; --text: #ffffff;
+                   --text-light: #aaa; --border: #333; }
+        }
+        body { font-family: Arial, sans-serif; background: var(--bg); color: var(--text); }
+        header { background: white; padding: 1rem 2rem; border-bottom: 1px solid var(--border);
+                display: flex; justify-content: space-between; align-items: center; }
+        .logo { font-size: 1.5rem; font-weight: bold; color: var(--primary); }
+        nav { background: #000; color: white; padding: 0.75rem 2rem; display: flex; gap: 2rem; }
+        nav a { color: white; text-decoration: none; font-size: 0.95rem; padding: 0.5rem 0;
+               transition: color 0.2s; }
+        nav a:hover { color: var(--primary); }
+        .hero { background: linear-gradient(135deg, #ff2e2e 0%, #ff6b5b 100%); color: white;
+               padding: 5rem 2rem; text-align: center; }
+        .hero h1 { font-size: 3rem; margin-bottom: 1rem; }
+        .hero p { font-size: 1.2rem; margin-bottom: 2rem; }
+        .cta-button { background: white; color: #ff2e2e; padding: 1rem 2rem;
+                     border: none; border-radius: 6px; font-weight: bold;
+                     cursor: pointer; font-size: 1rem; }
+        .cta-button:hover { transform: scale(1.05); }
+        .container { max-width: 1200px; margin: 0 auto; padding: 2rem; }
+        .categories { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+                     gap: 2rem; margin: 3rem 0; }
+        .category-card { background: var(--bg-alt); padding: 2rem; border-radius: 8px;
+                        text-align: center; cursor: pointer; transition: all 0.3s; }
+        .category-card:hover { transform: translateY(-8px); box-shadow: 0 8px 16px rgba(0,0,0,0.1); }
+        .category-card a { text-decoration: none; color: var(--text); display: block; }
+        .category-icon { font-size: 3rem; margin-bottom: 1rem; }
+        .category-name { font-weight: bold; margin-bottom: 0.5rem; font-size: 1.1rem; }
+        .category-count { color: var(--text-light); font-size: 0.9rem; }
+        footer { background: #000; color: white; padding: 2rem; text-align: center; margin-top: 3rem; }
+    </style>
+</head>
+<body>
+    <header>
+        <div class="logo">🔴 destockavenue.</div>
+        <nav>
+            <a href="index.html">Accueil</a>
+            <a href="#categories">Catégories</a>
+            <a href="#features">À Propos</a>
+        </nav>
+    </header>
+
+    <section class="hero">
+        <div style="max-width: 800px; margin: 0 auto;">
+            <h1>Les Meilleures Affaires, Prix Cassés</h1>
+            <p>Produits de marque premium à prix déstockage - Jusqu'à 70% de réduction</p>
+            <button class="cta-button" onclick="document.getElementById('categories').scrollIntoView({behavior: 'smooth'})">
+                Voir les Produits
+            </button>
+        </div>
+    </section>
+
+    <div class="container">
+        <section id="categories">
+            <h2 style="font-size: 2rem; margin-bottom: 2rem; text-align: center;">Parcourir par Catégorie</h2>
+
+            <div class="categories">
+                <div class="category-card">
+                    <a href="categorie-aspirateurs.html">
+                        <div class="category-icon">🤖</div>
+                        <div class="category-name">Aspirateurs Robots</div>
+                        <div class="category-count">91 produits</div>
+                    </a>
+                </div>
+
+                <div class="category-card">
+                    <a href="categorie-cafetiere.html">
+                        <div class="category-icon">☕</div>
+                        <div class="category-name">Cafetières</div>
+                        <div class="category-count">61 produits</div>
+                    </a>
+                </div>
+
+                <div class="category-card">
+                    <a href="categorie-airfryer.html">
+                        <div class="category-icon">🍟</div>
+                        <div class="category-name">Air Fryers</div>
+                        <div class="category-count">21 produits</div>
+                    </a>
+                </div>
+
+                <div class="category-card">
+                    <a href="categorie-robots.html">
+                        <div class="category-icon">🥘</div>
+                        <div class="category-name">Robots Cuiseur</div>
+                        <div class="category-count">18 produits</div>
+                    </a>
+                </div>
+
+                <div class="category-card">
+                    <a href="categorie-electromenager.html">
+                        <div class="category-icon">🧯</div>
+                        <div class="category-name">Électroménager</div>
+                        <div class="category-count">26 produits</div>
+                    </a>
+                </div>
+
+                <div class="category-card">
+                    <a href="categorie-autres.html">
+                        <div class="category-icon">📦</div>
+                        <div class="category-name">Autres</div>
+                        <div class="category-count">222 produits</div>
+                    </a>
+                </div>
+            </div>
+        </section>
+
+        <section id="features" style="margin-top: 4rem; padding: 2rem; background: var(--bg-alt); border-radius: 8px;">
+            <h2 style="font-size: 1.5rem; margin-bottom: 1.5rem;">Pourquoi Choisir Destock Avenue FR ?</h2>
+
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 2rem;">
+                <div>
+                    <h3 style="font-size: 1.1rem; margin-bottom: 0.5rem;">📦 Arrivages Réguliers</h3>
+                    <p style="color: var(--text-light);">Nouveau stock chaque semaine</p>
+                </div>
+                <div>
+                    <h3 style="font-size: 1.1rem; margin-bottom: 0.5rem;">⭐ Marques Premium</h3>
+                    <p style="color: var(--text-light);">DREAME • ECOVACS • Samsung • Ninja</p>
+                </div>
+                <div>
+                    <h3 style="font-size: 1.1rem; margin-bottom: 0.5rem;">💰 Prix Cassés</h3>
+                    <p style="color: var(--text-light);">Jusqu'à 70% de réduction</p>
+                </div>
+                <div>
+                    <h3 style="font-size: 1.1rem; margin-bottom: 0.5rem;">⚡ Stock Limité</h3>
+                    <p style="color: var(--text-light);">Dépêche-toi avant rupture !</p>
+                </div>
+                <div>
+                    <h3 style="font-size: 1.1rem; margin-bottom: 0.5rem;">✅ 100% Sécurisé</h3>
+                    <p style="color: var(--text-light);">Testé et Garanti</p>
+                </div>
+                <div>
+                    <h3 style="font-size: 1.1rem; margin-bottom: 0.5rem;">🚚 Livraison Rapide</h3>
+                    <p style="color: var(--text-light);">Expédié en 24h</p>
+                </div>
+            </div>
+        </section>
+    </div>
+
+    <footer>
+        <p><strong>Destock Avenue FR - Les Meilleures Affaires, Prix Cassés</strong></p>
+        <p style="margin-top: 1rem; color: #aaa;">© 2026 - Tous droits réservés</p>
+        <p style="margin-top: 1rem; color: #aaa;">📧 nqairidriss@yahoo.fr | 💬 WhatsApp</p>
+    </footer>
+</body>
+</html>

@@ -6,7 +6,10 @@ const cors = require('cors');
 const app = express();
 const PORT = process.env.PORT || 3000;
 
-app.use(cors());
+app.use(cors({
+  origin: ['http://localhost:5500', 'http://localhost:3000', 'https://destock-avenue-fr.netlify.app'],
+  credentials: true
+}));
 app.use(express.json());
 
 const FRONTEND_URL = process.env.FRONTEND_URL || 'http://localhost:5500';

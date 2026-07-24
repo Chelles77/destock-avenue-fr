@@ -13,12 +13,19 @@
                    --text-light: #aaa; --border: #333; }
         }
         body { font-family: Arial, sans-serif; background: var(--bg); color: var(--text); }
-        header { background: white; padding: 1rem 2rem; border-bottom: 1px solid var(--border);
+        header { background: white; padding: 0.75rem 1rem; border-bottom: 1px solid var(--border);
                 display: flex; justify-content: space-between; align-items: center; }
-        .logo { font-size: 1.5rem; font-weight: bold; color: var(--primary); }
-        nav { background: #000; color: white; padding: 0.75rem 2rem; display: flex; gap: 2rem; }
-        nav a { color: white; text-decoration: none; font-size: 0.95rem; transition: color 0.2s; }
+        .logo { font-size: 1.2rem; font-weight: bold; color: var(--primary); }
+        .menu-toggle { display: none; background: none; border: none; font-size: 1.5rem; cursor: pointer; color: var(--primary); }
+        nav { background: #000; color: white; padding: 0.75rem 1rem; display: flex; gap: 1.5rem; }
+        nav a { color: white; text-decoration: none; font-size: 0.9rem; transition: color 0.2s; }
         nav a:hover { color: var(--primary); }
+        @media (max-width: 768px) {
+            .menu-toggle { display: block; }
+            nav { position: absolute; top: 3rem; left: 0; right: 0; flex-direction: column; gap: 0; padding: 1rem; max-height: 0; overflow: hidden; transition: max-height 0.3s; }
+            nav.active { max-height: 300px; }
+            nav a { padding: 0.75rem 0; border-bottom: 1px solid #333; }
+        }
         .container { max-width: 1400px; margin: 0 auto; padding: 2rem; }
         .category-title { font-size: 2rem; margin-bottom: 2rem; font-weight: bold; }
         .filters-section { display: grid; grid-template-columns: 250px 1fr; gap: 2rem; }
@@ -53,16 +60,20 @@
     </style>
 </head>
 <body>
-    <header><div class="logo">🔴 destockavenue.</div></header>
-    <nav>
-        <a href="index.html">Accueil</a>
-        <a href="categorie-aspirateurs.html">Aspirateurs</a>
-        <a href="categorie-cafetiere.html">Cafetières</a>
-        <a href="categorie-airfryer.html">Air Fryers</a>
-        <a href="categorie-robots.html">Robots</a>
-        <a href="categorie-electromenager.html">Électroménager</a>
-        <a href="categorie-autres.html">Autres</a>
-    </nav>
+    <header>
+        <div class="logo">🔴 destock.</div>
+        <button class="menu-toggle" onclick="toggleMenu()">☰</button>
+        <nav id="menu">
+            <a href="index.html">Accueil</a>
+            <a href="categorie-aspirateurs.html">Aspirateurs</a>
+            <a href="categorie-cafetiere.html">Cafetières</a>
+            <a href="categorie-airfryer.html">Air Fryers</a>
+            <a href="categorie-robots.html">Robots</a>
+            <a href="categorie-electromenager.html">Électroménager</a>
+            <a href="categorie-autres.html">Autres</a>
+            <a href="panier.html">🛒 Panier (<span id="cart-count">0</span>)</a>
+        </nav>
+    </header>
     <div class="container">
         <h1 class="category-title">Cafetières & Machines à Café (61)</h1>
         <div class="filters-section">
@@ -91,7 +102,7 @@
                             <div class="product-name">Krups Essential Cafetière</div>
                             <div class="product-price"><span class="price-current">299€</span><span class="price-original">515€</span></div>
                             <div class="stock-status stock-available">✓ 8 en stock</div>
-                            <button class="add-to-cart">Ajouter au panier</button>
+                            <button class="add-to-cart" onclick="addToCart('krups-essential', 'Krups Essential', 299)">Ajouter au panier</button>
                         </div>
                     </div>
                 </div>
@@ -99,5 +110,38 @@
             </div>
         </div>
     </div>
+    <script>
+        function toggleMenu() {
+            const menu = document.getElementById('menu');
+            menu.classList.toggle('active');
+        }
+        document.querySelectorAll('#menu a').forEach(link => {
+            link.addEventListener('click', () => {
+                document.getElementById('menu').classList.remove('active');
+            });
+        });
+
+        function updateCartCount() {
+            const cart = JSON.parse(localStorage.getItem('cart')) || [];
+            const count = cart.reduce((sum, item) => sum + item.qty, 0);
+            const countElement = document.getElementById('cart-count');
+            if (countElement) countElement.textContent = count;
+        }
+
+        function addToCart(id, name, price) {
+            const cart = JSON.parse(localStorage.getItem('cart')) || [];
+            const existing = cart.find(item => item.id === id);
+            if (existing) {
+                existing.qty++;
+            } else {
+                cart.push({id, name, price, qty: 1});
+            }
+            localStorage.setItem('cart', JSON.stringify(cart));
+            updateCartCount();
+            alert(name + ' ajouté au panier ! ✅');
+        }
+
+        updateCartCount();
+    </script>
 </body>
 </html>

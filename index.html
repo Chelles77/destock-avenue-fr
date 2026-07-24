@@ -15,13 +15,20 @@
                    --text-light: #aaa; --border: #333; }
         }
         body { font-family: Arial, sans-serif; background: var(--bg); color: var(--text); }
-        header { background: white; padding: 1rem 2rem; border-bottom: 1px solid var(--border);
+        header { background: white; padding: 0.75rem 1rem; border-bottom: 1px solid var(--border);
                 display: flex; justify-content: space-between; align-items: center; }
-        .logo { font-size: 1.5rem; font-weight: bold; color: var(--primary); }
-        nav { background: #000; color: white; padding: 0.75rem 2rem; display: flex; gap: 2rem; }
-        nav a { color: white; text-decoration: none; font-size: 0.95rem; padding: 0.5rem 0;
+        .logo { font-size: 1.2rem; font-weight: bold; color: var(--primary); }
+        .menu-toggle { display: none; background: none; border: none; font-size: 1.5rem; cursor: pointer; color: var(--primary); }
+        nav { background: #000; color: white; padding: 0.75rem 1rem; display: flex; gap: 1.5rem; }
+        nav a { color: white; text-decoration: none; font-size: 0.9rem; padding: 0.5rem 0;
                transition: color 0.2s; }
         nav a:hover { color: var(--primary); }
+        @media (max-width: 768px) {
+            .menu-toggle { display: block; }
+            nav { position: absolute; top: 3rem; left: 0; right: 0; flex-direction: column; gap: 0; padding: 1rem; max-height: 0; overflow: hidden; transition: max-height 0.3s; }
+            nav.active { max-height: 300px; }
+            nav a { padding: 0.75rem 0; border-bottom: 1px solid #333; }
+        }
         .hero { background: linear-gradient(135deg, #ff2e2e 0%, #ff6b5b 100%); color: white;
                padding: 5rem 2rem; text-align: center; }
         .hero h1 { font-size: 3rem; margin-bottom: 1rem; }
@@ -45,11 +52,13 @@
 </head>
 <body>
     <header>
-        <div class="logo">🔴 destockavenue.</div>
-        <nav>
+        <div class="logo">🔴 destock.</div>
+        <button class="menu-toggle" onclick="toggleMenu()">☰</button>
+        <nav id="menu">
             <a href="index.html">Accueil</a>
             <a href="#categories">Catégories</a>
             <a href="#features">À Propos</a>
+            <a href="panier.html">🛒 Panier (<span id="cart-count">0</span>)</a>
         </nav>
     </header>
 
@@ -155,5 +164,38 @@
         <p style="margin-top: 1rem; color: #aaa;">© 2026 - Tous droits réservés</p>
         <p style="margin-top: 1rem; color: #aaa;">📧 nqairidriss@yahoo.fr | 💬 WhatsApp</p>
     </footer>
+    <script>
+        function toggleMenu() {
+            const menu = document.getElementById('menu');
+            menu.classList.toggle('active');
+        }
+        document.querySelectorAll('#menu a').forEach(link => {
+            link.addEventListener('click', () => {
+                document.getElementById('menu').classList.remove('active');
+            });
+        });
+
+        function updateCartCount() {
+            const cart = JSON.parse(localStorage.getItem('cart')) || [];
+            const count = cart.reduce((sum, item) => sum + item.qty, 0);
+            const countElement = document.getElementById('cart-count');
+            if (countElement) countElement.textContent = count;
+        }
+
+        function addToCart(id, name, price) {
+            const cart = JSON.parse(localStorage.getItem('cart')) || [];
+            const existing = cart.find(item => item.id === id);
+            if (existing) {
+                existing.qty++;
+            } else {
+                cart.push({id, name, price, qty: 1});
+            }
+            localStorage.setItem('cart', JSON.stringify(cart));
+            updateCartCount();
+            alert(name + ' ajouté au panier ! ✅');
+        }
+
+        updateCartCount();
+    </script>
 </body>
 </html>

@@ -39,16 +39,20 @@
     </style>
 </head>
 <body>
-    <header><div class="logo">🔴 destockavenue.</div></header>
-    <nav>
-        <a href="index.html">Accueil</a>
-        <a href="categorie-aspirateurs.html">Aspirateurs</a>
-        <a href="categorie-cafetiere.html">Cafetières</a>
-        <a href="categorie-airfryer.html">Air Fryers</a>
-        <a href="categorie-robots.html">Robots</a>
-        <a href="categorie-electromenager.html">Électroménager</a>
-        <a href="categorie-autres.html">Autres</a>
-    </nav>
+    <header>
+        <div class="logo">🔴 destock.</div>
+        <button class="menu-toggle" onclick="toggleMenu()">☰</button>
+        <nav id="menu">
+            <a href="index.html">Accueil</a>
+            <a href="categorie-aspirateurs.html">Aspirateurs</a>
+            <a href="categorie-cafetiere.html">Cafetières</a>
+            <a href="categorie-airfryer.html">Air Fryers</a>
+            <a href="categorie-robots.html">Robots</a>
+            <a href="categorie-electromenager.html">Électroménager</a>
+            <a href="categorie-autres.html">Autres</a>
+            <a href="panier.html">🛒 Panier (<span id="cart-count">0</span>)</a>
+        </nav>
+    </header>
     <div class="container">
         <h1 class="category-title">Robots Cuiseur (18)</h1>
         <div class="filters-section">
@@ -76,5 +80,38 @@
             </div>
         </div>
     </div>
+    <script>
+        function toggleMenu() {
+            const menu = document.getElementById('menu');
+            menu.classList.toggle('active');
+        }
+        document.querySelectorAll('#menu a').forEach(link => {
+            link.addEventListener('click', () => {
+                document.getElementById('menu').classList.remove('active');
+            });
+        });
+
+        function updateCartCount() {
+            const cart = JSON.parse(localStorage.getItem('cart')) || [];
+            const count = cart.reduce((sum, item) => sum + item.qty, 0);
+            const countElement = document.getElementById('cart-count');
+            if (countElement) countElement.textContent = count;
+        }
+
+        function addToCart(id, name, price) {
+            const cart = JSON.parse(localStorage.getItem('cart')) || [];
+            const existing = cart.find(item => item.id === id);
+            if (existing) {
+                existing.qty++;
+            } else {
+                cart.push({id, name, price, qty: 1});
+            }
+            localStorage.setItem('cart', JSON.stringify(cart));
+            updateCartCount();
+            alert(name + ' ajouté au panier ! ✅');
+        }
+
+        updateCartCount();
+    </script>
 </body>
 </html>

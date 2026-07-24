@@ -1,0 +1,230 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Panier - Destock Avenue FR</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        :root {
+            --bg: #ffffff; --bg-alt: #f5f5f5; --text: #1a1a1a; --text-light: #666;
+            --border: #e0e0e0; --primary: #ff2e2e; --accent: #ffd700;
+        }
+        @media (prefers-color-scheme: dark) {
+            :root { --bg: #0f0f0f; --bg-alt: #1a1a1a; --text: #ffffff;
+                   --text-light: #aaa; --border: #333; }
+        }
+        body { font-family: Arial, sans-serif; background: var(--bg); color: var(--text); }
+        header { background: white; padding: 0.75rem 1rem; border-bottom: 1px solid var(--border);
+                display: flex; justify-content: space-between; align-items: center; }
+        .logo { font-size: 1.2rem; font-weight: bold; color: var(--primary); }
+        .menu-toggle { display: none; background: none; border: none; font-size: 1.5rem; cursor: pointer; color: var(--primary); }
+        nav { background: #000; color: white; padding: 0.75rem 1rem; display: flex; gap: 1.5rem; }
+        nav a { color: white; text-decoration: none; font-size: 0.9rem; transition: color 0.2s; }
+        nav a:hover { color: var(--primary); }
+        @media (max-width: 768px) {
+            .menu-toggle { display: block; }
+            nav { position: absolute; top: 3rem; left: 0; right: 0; flex-direction: column; gap: 0; padding: 1rem; max-height: 0; overflow: hidden; transition: max-height 0.3s; }
+            nav.active { max-height: 300px; }
+            nav a { padding: 0.75rem 0; border-bottom: 1px solid #333; }
+        }
+        .container { max-width: 1000px; margin: 0 auto; padding: 2rem 1rem; }
+        h1 { margin-bottom: 2rem; }
+        .panier-vide { text-align: center; padding: 3rem 1rem; }
+        .panier-vide p { color: var(--text-light); margin-bottom: 1rem; }
+        .panier-items { margin-bottom: 2rem; }
+        .item { display: grid; grid-template-columns: 1fr 1fr 1fr auto; gap: 1rem; padding: 1.5rem;
+                border: 1px solid var(--border); border-radius: 8px; margin-bottom: 1rem; align-items: center; }
+        .item-name { font-weight: bold; }
+        .item-price { color: var(--primary); font-weight: bold; }
+        .item-qty { display: flex; gap: 0.5rem; align-items: center; }
+        .item-qty button { width: 30px; height: 30px; border: 1px solid var(--border); background: var(--bg-alt);
+                          cursor: pointer; border-radius: 4px; font-weight: bold; }
+        .item-qty button:hover { background: var(--primary); color: white; }
+        .btn-remove { background: var(--primary); color: white; border: none; padding: 0.5rem 1rem;
+                     border-radius: 4px; cursor: pointer; font-weight: bold; }
+        .btn-remove:hover { background: #e60000; }
+        .panier-summary { background: var(--bg-alt); padding: 2rem; border-radius: 8px; text-align: right; }
+        .summary-line { display: flex; justify-content: space-between; margin-bottom: 0.5rem; }
+        .summary-total { font-size: 1.5rem; font-weight: bold; color: var(--primary); border-top: 2px solid var(--border);
+                        padding-top: 1rem; margin-top: 1rem; }
+        .btn-checkout { background: var(--primary); color: white; padding: 1rem 2rem; font-size: 1.1rem;
+                       border: none; border-radius: 4px; cursor: pointer; font-weight: bold; width: 100%; margin-top: 1rem; }
+        .btn-checkout:hover { background: #e60000; }
+        .btn-continue { background: var(--text-light); color: white; padding: 0.75rem 1.5rem;
+                       border: none; border-radius: 4px; cursor: pointer; text-decoration: none; display: inline-block; }
+        .btn-continue:hover { background: var(--text); }
+        @media (max-width: 768px) {
+            .item { grid-template-columns: 1fr auto; }
+            .item-name { grid-column: 1 / -1; }
+            .panier-summary { text-align: left; }
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <div class="logo">🔴 destock.</div>
+        <button class="menu-toggle" onclick="toggleMenu()">☰</button>
+        <nav id="menu">
+            <a href="index.html">Accueil</a>
+            <a href="categorie-aspirateurs.html">Aspirateurs</a>
+            <a href="categorie-cafetiere.html">Cafetières</a>
+            <a href="categorie-airfryer.html">Air Fryers</a>
+            <a href="categorie-robots.html">Robots</a>
+            <a href="categorie-electromenager.html">Électroménager</a>
+            <a href="categorie-autres.html">Autres</a>
+            <a href="panier.html">🛒 Panier (<span id="cart-count">0</span>)</a>
+        </nav>
+    </header>
+
+    <div class="container">
+        <h1>🛒 Mon Panier</h1>
+        <div id="cart-content"></div>
+    </div>
+
+    <script src="https://js.stripe.com/v3/"></script>
+    <script>
+        const BACKEND_URL = 'http://localhost:3000';
+
+        function toggleMenu() {
+            const menu = document.getElementById('menu');
+            menu.classList.toggle('active');
+        }
+        document.querySelectorAll('#menu a').forEach(link => {
+            link.addEventListener('click', () => {
+                document.getElementById('menu').classList.remove('active');
+            });
+        });
+
+        class Cart {
+            constructor() {
+                this.items = JSON.parse(localStorage.getItem('cart')) || [];
+            }
+
+            add(product) {
+                const existing = this.items.find(item => item.id === product.id);
+                if (existing) {
+                    existing.qty++;
+                } else {
+                    this.items.push({...product, qty: 1});
+                }
+                this.save();
+            }
+
+            remove(id) {
+                this.items = this.items.filter(item => item.id !== id);
+                this.save();
+            }
+
+            updateQty(id, qty) {
+                const item = this.items.find(item => item.id === id);
+                if (item) {
+                    item.qty = Math.max(1, qty);
+                    this.save();
+                }
+            }
+
+            getTotal() {
+                return this.items.reduce((sum, item) => sum + (item.price * item.qty), 0);
+            }
+
+            getCount() {
+                return this.items.reduce((sum, item) => sum + item.qty, 0);
+            }
+
+            save() {
+                localStorage.setItem('cart', JSON.stringify(this.items));
+                this.updateUI();
+            }
+
+            updateUI() {
+                document.getElementById('cart-count').textContent = this.getCount();
+                this.render();
+            }
+
+            render() {
+                const content = document.getElementById('cart-content');
+                if (this.items.length === 0) {
+                    content.innerHTML = `
+                        <div class="panier-vide">
+                            <p>Ton panier est vide 😢</p>
+                            <a href="index.html" class="btn-continue">Continuer le shopping</a>
+                        </div>
+                    `;
+                    return;
+                }
+
+                let html = '<div class="panier-items">';
+                this.items.forEach(item => {
+                    html += `
+                        <div class="item">
+                            <div class="item-name">${item.name}</div>
+                            <div class="item-price">${item.price}€</div>
+                            <div class="item-qty">
+                                <button onclick="cart.updateQty('${item.id}', ${item.qty - 1})">−</button>
+                                <span>${item.qty}</span>
+                                <button onclick="cart.updateQty('${item.id}', ${item.qty + 1})">+</button>
+                            </div>
+                            <button class="btn-remove" onclick="cart.remove('${item.id}')">Retirer</button>
+                        </div>
+                    `;
+                });
+                html += '</div>';
+
+                const total = this.getTotal();
+                html += `
+                    <div class="panier-summary">
+                        <div class="summary-line">
+                            <span>Sous-total:</span>
+                            <span>${total.toFixed(2)}€</span>
+                        </div>
+                        <div class="summary-line">
+                            <span>Livraison:</span>
+                            <span>Gratuite</span>
+                        </div>
+                        <div class="summary-total">
+                            <div class="summary-line">
+                                <span>TOTAL:</span>
+                                <span>${total.toFixed(2)}€</span>
+                            </div>
+                        </div>
+                        <button class="btn-checkout" onclick="checkout()">Passer la commande</button>
+                        <a href="index.html" class="btn-continue">Continuer le shopping</a>
+                    </div>
+                `;
+
+                content.innerHTML = html;
+            }
+        }
+
+        const cart = new Cart();
+        cart.updateUI();
+
+        async function checkout() {
+            if (cart.items.length === 0) {
+                alert('Ton panier est vide !');
+                return;
+            }
+
+            try {
+                const response = await fetch(`${BACKEND_URL}/create-checkout-session`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ items: cart.items })
+                });
+
+                if (!response.ok) {
+                    throw new Error('Erreur du serveur');
+                }
+
+                const data = await response.json();
+                const stripe = Stripe('pk_test_51TwfhgRzrvJhPJ7zuxGwpji3sCBZDMYrroEWUNChS5if6NCvgkUJll0tRftEgn02o392W6uqxIE8fF7ispPn0NuV00ecVPofVw');
+                await stripe.redirectToCheckout({ sessionId: data.id });
+            } catch (error) {
+                alert('Erreur: ' + error.message);
+                console.error(error);
+            }
+        }
+    </script>
+</body>
+</html>

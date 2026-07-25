@@ -1,9 +1,5 @@
 [build]
   publish = "."
-  command = "echo 'No build needed'"
-
-[context.production]
-  command = "echo 'Production build'"
 
 [[redirects]]
   from = "/*"

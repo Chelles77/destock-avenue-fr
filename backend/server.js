@@ -93,49 +93,57 @@ app.post('/api/upload', upload.single('image'), (req, res) => {
 });
 
 // === ROUTES PRODUITS ===
-app.get('/api/products', (req, res) => {
-  db.all('SELECT * FROM products ORDER BY category, name', (err, rows) => {
-    if (err) return res.status(500).json({ error: err.message });
-    res.json(rows || []);
-  });
+app.get('/api/products', async (req, res) => {
+  try {
+    const result = await db.query('SELECT * FROM products ORDER BY category, name');
+    res.json(result.rows || []);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
 });
 
-app.get('/api/products/category/:category', (req, res) => {
-  db.all('SELECT * FROM products WHERE category = ? ORDER BY name', [req.params.category], (err, rows) => {
-    if (err) return res.status(500).json({ error: err.message });
-    res.json(rows || []);
-  });
+app.get('/api/products/category/:category', async (req, res) => {
+  try {
+    const result = await db.query('SELECT * FROM products WHERE category = $1 ORDER BY name', [req.params.category]);
+    res.json(result.rows || []);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
 });
 
-app.post('/api/products', (req, res) => {
+app.post('/api/products', async (req, res) => {
   const { id, category, name, price, original_price, discount, stock, image } = req.body;
-  db.run(
-    'INSERT INTO products (id, category, name, price, original_price, discount, stock, image) VALUES (?, ?, ?, ?, ?, ?, ?, ?)',
-    [id, category, name, price, original_price, discount, stock, image],
-    function(err) {
-      if (err) return res.status(400).json({ error: err.message });
-      res.json({ id, message: 'Produit ajouté' });
-    }
-  );
+  try {
+    await db.query(
+      'INSERT INTO products (id, category, name, price, original_price, discount, stock, image) VALUES ($1, $2, $3, $4, $5, $6, $7, $8)',
+      [id, category, name, price, original_price, discount, stock, image]
+    );
+    res.json({ id, message: 'Produit ajouté' });
+  } catch (err) {
+    res.status(400).json({ error: err.message });
+  }
 });
 
-app.put('/api/products/:id', (req, res) => {
+app.put('/api/products/:id', async (req, res) => {
   const { name, price, original_price, discount, stock, image } = req.body;
-  db.run(
-    'UPDATE products SET name=?, price=?, original_price=?, discount=?, stock=?, image=? WHERE id=?',
-    [name, price, original_price, discount, stock, image, req.params.id],
-    function(err) {
-      if (err) return res.status(400).json({ error: err.message });
-      res.json({ message: 'Produit mis à jour' });
-    }
-  );
+  try {
+    await db.query(
+      'UPDATE products SET name=$1, price=$2, original_price=$3, discount=$4, stock=$5, image=$6 WHERE id=$7',
+      [name, price, original_price, discount, stock, image, req.params.id]
+    );
+    res.json({ message: 'Produit mis à jour' });
+  } catch (err) {
+    res.status(400).json({ error: err.message });
+  }
 });
 
-app.delete('/api/products/:id', (req, res) => {
-  db.run('DELETE FROM products WHERE id=?', [req.params.id], function(err) {
-    if (err) return res.status(400).json({ error: err.message });
+app.delete('/api/products/:id', async (req, res) => {
+  try {
+    await db.query('DELETE FROM products WHERE id=$1', [req.params.id]);
     res.json({ message: 'Produit supprimé' });
-  });
+  } catch (err) {
+    res.status(400).json({ error: err.message });
+  }
 });
 
 // === AUTH ===

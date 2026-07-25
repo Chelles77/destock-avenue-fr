@@ -10,7 +10,8 @@
   to = "/index.html"
   status = 200
 
-[headers]
-  [[headers.values]]
+[[headers]]
+  for = "/*"
+  [headers.values]
     key = "Access-Control-Allow-Origin"
     value = "*"

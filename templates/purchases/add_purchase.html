@@ -1,368 +1,318 @@
 {% extends "base.html" %}
 {% block title %}Simulateur B-Stock - ReventePro V4{% endblock %}
+{% block extra_css %}<link rel="stylesheet" href="{{ url_for('static', filename='css/purchases.css') }}">{% endblock %}
 
 {% block content %}
-<div class="page-head">
-  <h1>Simulateur d'achat B-Stock</h1>
-  <div>
-    <a class="btn" href="{{ url_for('purchases.comparative') }}">Historique comparatif</a>
-    <a class="btn" href="{{ url_for('purchases.index') }}">Retour</a>
-  </div>
-</div>
-
-{# --- Import du manifeste --- #}
-<div class="upload-section">
-  <label>Importer le fichier manifeste (CSV/XLSX) :</label>
-  <input type="file" id="manifest_file" accept=".csv,.xlsx" />
-
-  {# Mapping des colonnes : rempli avec les en-tetes reels du fichier #}
-  <div id="mapping" class="mapping" style="display:none;">
-    <h4>Mapping des colonnes</h4>
-    <div class="map-grid">
-      <label>Nom Produit <select id="map_name" class="input"></select></label>
-      <label>Prix Neuf <select id="map_price" class="input"></select></label>
-      <label>Marque <select id="map_brand" class="input"></select></label>
-      <label>Quantite <select id="map_qty" class="input"></select></label>
+<div class="page-container">
+    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:1.5rem;">
+        <h1>📐 Simulateur d'Achat &amp; Memoire</h1>
+        <div style="display:flex; gap:0.75rem;">
+            <a href="{{ url_for('purchases.comparative') }}" class="btn-secondary">Historique Comparatif</a>
+            <a href="{{ url_for('purchases.index') }}" class="btn-secondary">Retour aux Lots</a>
+        </div>
     </div>
-  </div>
 
-  <button type="button" id="btn_analyze_file" class="btn btn-small btn-primary">Analyser le fichier</button>
-  <div id="import_summary" class="import-summary"></div>
-</div>
-
-<div class="resale-control">
-  <label for="resale_rate">Estimation Taux de Revente (%)</label>
-  <input type="range" id="resale_rate" min="5" max="80" value="30" step="1">
-  <input type="number" id="resale_rate_num" min="5" max="80" value="30" class="input rate-num">
-  <span id="resale_rate_display" class="rate-big">30%</span>
-</div>
-
-<div class="calc-layout">
-  {# --- Saisie (editable meme apres import) --- #}
-  <form method="post" class="form" novalidate>
+    <form method="post" novalidate enctype="multipart/form-data">
     {{ form.hidden_tag() }}
+    <div class="sim-layout">
+        <!-- ===================== COLONNE GAUCHE : PARAMETRES ===================== -->
+        <div class="insight-card sim-params">
+            <div class="insight-card-head"><h3>⚙️ Parametres</h3></div>
 
-    <div class="field">
-      {{ form.lot_number.label }}
-      {{ form.lot_number(class="input") }}
-      {% for e in form.lot_number.errors %}<span class="error">{{ e }}</span>{% endfor %}
+            <div class="field-group">{{ form.lot_number.label }}{{ form.lot_number(class="input-modern", id="lot_number", placeholder="Ex: Lot Driss Aspirateurs") }}</div>
+            <div class="field-group">{{ form.purchase_date.label }}{{ form.purchase_date(class="input-modern") }}</div>
+
+            <div class="field-group">
+                <label>Fichier Excel / CSV</label>
+                <div class="upload-zone" onclick="document.getElementById('manifest_file').click()" style="padding:1rem; text-align:left; display:flex; align-items:center; gap:0.5rem;">
+                    <span>📂</span>
+                    <span id="file_name" class="muted" style="font-size:0.85rem;">Aucun fichier selectionne</span>
+                </div>
+                <input type="file" id="manifest_file" accept=".csv,.xlsx" style="display:none;"
+                       onchange="document.getElementById('file_name').textContent = this.files[0] ? this.files[0].name : 'Aucun fichier selectionne';">
+            </div>
+
+            <div class="field-group">{{ form.estimated_retail_total.label }}{{ form.estimated_retail_total(class="input-modern calc", type="number", step="0.01", id="estimated_retail_total") }}</div>
+
+            <div class="sim-field-row">
+                <div class="field-group">{{ form.pallet_count.label }}{{ form.pallet_count(class="input-modern calc", type="number", id="pallet_count") }}</div>
+                <div class="field-group">{{ form.auction_fee_percent.label }}{{ form.auction_fee_percent(class="input-modern calc", type="number", step="0.1") }}</div>
+            </div>
+
+            <div class="sim-field-row">
+                <div class="field-group">{{ form.bid_price.label }}{{ form.bid_price(class="input-modern calc", type="number", step="0.01") }}</div>
+                <div class="field-group">{{ form.shipping_cost.label }}{{ form.shipping_cost(class="input-modern calc", type="number", step="0.01") }}</div>
+            </div>
+
+            <div class="field-group">{{ form.quantity.label }}{{ form.quantity(class="input-modern calc", type="number", id="quantity") }}</div>
+
+            <div class="field-group">
+                <label>Taux de Revente Retenu (%)</label>
+                <div style="display:flex; align-items:center; gap:0.5rem;">
+                    <input type="range" id="resale_rate" min="5" max="80" value="30" step="1" class="calc" style="flex:1;">
+                    <span id="resale_rate_display" style="font-weight:800; color:var(--primary); min-width:3rem; text-align:right;">30%</span>
+                </div>
+            </div>
+
+            <div class="field-group" style="display:flex; align-items:center; gap:0.5rem;">
+                {{ form.is_purchased() }} {{ form.is_purchased.label }}
+            </div>
+
+            <button type="button" id="btn_analyze_file" class="btn-primary" onclick="analyzeWithPython()">✏️ Lancer l'Analyse</button>
+            <div id="import_summary" style="margin-top:0.75rem; font-weight:600; font-size:0.85rem;"></div>
+
+            {{ form.submit(class="btn-primary", style="margin-top:0.75rem; background:#16a34a; border-color:#16a34a;") }}
+        </div>
+
+        <!-- ===================== COLONNE DROITE : RESULTATS ===================== -->
+        <div class="sim-results">
+            <div class="sim-score-head">
+                <div>
+                    <div class="sim-score-title" id="score_title">Nouveau lot</div>
+                    <div class="muted" id="score_date">Simule le {{ '%Y-%m-%d'|format() if false else '' }}<span id="score_date_val"></span></div>
+                </div>
+                <div class="sim-score-box">
+                    <span class="sim-score-value" id="r_score">-</span><span class="sim-score-max">/20</span>
+                    <span class="sim-score-badge" id="r_score_badge">-</span>
+                </div>
+            </div>
+
+            <div class="kpi-grid">
+                <div class="kpi-card kpi-cyan">
+                    <div class="kpi-head"><span class="kpi-label">Nb Pieces</span></div>
+                    <div class="kpi-value" id="kpi_qty">-</div>
+                </div>
+                <div class="kpi-card kpi-cyan">
+                    <div class="kpi-head"><span class="kpi-label">Prix / Palette</span></div>
+                    <div class="kpi-value" id="kpi_per_pallet">-</div>
+                </div>
+                <div class="kpi-card kpi-orange">
+                    <div class="kpi-head"><span class="kpi-label">Ratio Achat</span></div>
+                    <div class="kpi-value" id="kpi_ratio">-</div>
+                    <div class="kpi-sub" id="kpi_ratio_sub">vs valeur neuf</div>
+                </div>
+                <div class="kpi-card kpi-green">
+                    <div class="kpi-head"><span class="kpi-label">Marge Estimee</span></div>
+                    <div class="kpi-value" id="kpi_margin">-</div>
+                    <div class="kpi-sub" id="kpi_margin_sub"></div>
+                </div>
+            </div>
+
+            <div class="sim-two-col">
+                <div class="insight-card">
+                    <div class="insight-card-head"><h3>📋 Valeurs du Lot</h3></div>
+                    <div class="finance-grid">
+                        <div class="finance-row"><span>Valeur Brute (prix neuf saisi)</span><strong id="fin_retail">-</strong></div>
+                        <div class="finance-row"><span id="fin_realiste_label">Valeur Realiste</span><strong id="fin_realiste">-</strong></div>
+                        <div class="finance-row"><span>Cout Total Achat</span><strong id="fin_total">-</strong></div>
+                        <div class="finance-row"><span>Prix Moyen Brut</span><strong id="fin_avg_brut">-</strong></div>
+                        <div class="finance-row"><span>Prix Moyen Realiste</span><strong id="fin_avg_realiste">-</strong></div>
+                        <div class="finance-row finance-row-total"><span>Prix Revient Unitaire</span><strong id="fin_unit_cost">-</strong></div>
+                    </div>
+                </div>
+
+                <div class="insight-card" id="tiers_card" style="display:none;">
+                    <div class="insight-card-head"><h3>📊 Repartition des Prix (Excel)</h3></div>
+                    <p class="muted" style="margin:0 0 1rem; font-size:0.82rem;">Les produits a moins de 100 EUR sont difficiles a revendre.</p>
+                    <div class="tiers-grid" id="tiers_grid"></div>
+                </div>
+            </div>
+
+            <div id="r_message" style="text-align:center; color:var(--text-muted); font-style:italic; margin:1rem 0;"></div>
+            <div class="verdict-box verdict-mid" id="r_verdict">Renseignez les champs pour obtenir un verdict</div>
+        </div>
     </div>
+    </form>
 
-    <div class="field">
-      {{ form.estimated_retail_total.label }}
-      {{ form.estimated_retail_total(class="input calc", type="number", step="0.01") }}
-      {% for e in form.estimated_retail_total.errors %}<span class="error">{{ e }}</span>{% endfor %}
-    </div>
-
-    <div class="field">
-      {{ form.quantity.label }}
-      {{ form.quantity(class="input calc", type="number") }}
-      {% for e in form.quantity.errors %}<span class="error">{{ e }}</span>{% endfor %}
-    </div>
-
-    <div class="field">
-      {{ form.bid_price.label }}
-      {{ form.bid_price(class="input calc", type="number", step="0.01") }}
-      {% for e in form.bid_price.errors %}<span class="error">{{ e }}</span>{% endfor %}
-    </div>
-
-    <div class="field">
-      {{ form.auction_fee_percent.label }}
-      {{ form.auction_fee_percent(class="input calc", type="number", step="0.1") }}
-      {% for e in form.auction_fee_percent.errors %}<span class="error">{{ e }}</span>{% endfor %}
-    </div>
-
-    <div class="field">
-      {{ form.shipping_cost.label }}
-      {{ form.shipping_cost(class="input calc", type="number", step="0.01") }}
-      {% for e in form.shipping_cost.errors %}<span class="error">{{ e }}</span>{% endfor %}
-    </div>
-
-    <div class="field field-inline">
-      {{ form.is_purchased() }} {{ form.is_purchased.label }}
-    </div>
-
-    {{ form.submit(class="btn btn-primary") }}
-  </form>
-
-  {# --- Feu tricolore + metriques live --- #}
-  <div class="calc-board">
-    <h3>Analyse en temps reel</h3>
-    <div class="calc-row"><span>CA Revente Estime (<span id="r_rate_label">30</span>% du neuf)</span><strong id="r_real_sales">-</strong></div>
-    <div class="calc-row"><span>Cout total</span><strong id="r_total_cost">-</strong></div>
-    <div class="calc-row"><span>Prix de revient / piece</span><strong id="r_unit_cost">-</strong></div>
-    <div class="calc-row"><span>Revente / piece</span><strong id="r_unit_sales">-</strong></div>
-    <div class="calc-row big"><span>Coefficient multiplicateur</span><strong id="r_coeff">-</strong></div>
-    <div class="calc-row"><span>Marge nette</span><strong id="r_margin">-</strong></div>
-    <div class="calc-msg" id="r_message"></div>
-
-    <div class="traffic">
-      <span class="light" id="light_red"></span>
-      <span class="light" id="light_orange"></span>
-      <span class="light" id="light_green"></span>
-    </div>
-    <div class="verdict" id="r_verdict">Renseignez les champs</div>
-  </div>
+    <!-- DÉTAIL PRODUITS -->
+    <details id="detail_block" style="margin-top:1.5rem;" open>
+        <summary style="cursor:pointer; font-weight:700; font-size:1.1rem; padding:1rem 0; color:var(--text-main);">Détail des produits importés (<span id="product_count">0</span>)</summary>
+        <div class="card" style="overflow-x:auto;">
+            <table class="modern-table" id="detail_table">
+                <thead><tr><th>Nom Produit</th><th>Marque</th><th>Prix Neuf</th><th>Qté</th><th>Note</th></tr></thead>
+                <tbody></tbody>
+            </table>
+        </div>
+    </details>
 </div>
 
-{# --- Detail des produits importes (collapsible) --- #}
-<details id="detail_block" style="display:none; margin-top:1.5rem;">
-  <summary><strong>Detail des produits importes</strong></summary>
-  <table class="table" id="detail_table">
-    <thead>
-      <tr><th>Nom</th><th>Marque</th><th>Prix unitaire</th><th>Qte</th><th>Note</th></tr>
-    </thead>
-    <tbody></tbody>
-  </table>
-</details>
+<style>
+    .sim-layout { display: grid; grid-template-columns: 320px 1fr; gap: 1.5rem; align-items: start; }
+    .sim-params { display: flex; flex-direction: column; gap: 0.9rem; position: sticky; top: 1rem; }
+    .sim-params .field-group label { display: block; font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.04em; font-weight: 700; color: var(--text-muted); margin-bottom: 0.3rem; }
+    .sim-field-row { display: grid; grid-template-columns: 1fr 1fr; gap: 0.75rem; }
+    .sim-results { display: flex; flex-direction: column; gap: 0; }
 
-{# SheetJS (optionnel) pour lire les .xlsx ; le CSV est lu nativement #}
+    .sim-score-head { display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem; flex-wrap: wrap; gap: 1rem; }
+    .sim-score-title { font-size: 1.5rem; font-weight: 800; }
+    .sim-score-box { display: flex; align-items: baseline; gap: 0.5rem; }
+    .sim-score-value { font-size: 2.6rem; font-weight: 800; color: #fbbf24; }
+    .sim-score-max { font-size: 1.2rem; color: var(--text-muted); }
+    .sim-score-badge { background: #fbbf24; color: #1e1b0f; font-weight: 800; font-size: 0.8rem; padding: 0.25rem 0.75rem; border-radius: 8px; margin-left: 0.5rem; }
+
+    .sim-two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 1.25rem; margin-top: 1.25rem; }
+
+    @media (max-width: 960px) {
+        .sim-layout { grid-template-columns: 1fr; }
+        .sim-two-col { grid-template-columns: 1fr; }
+    }
+</style>
+
 <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
 <script>
-  // ---- Bareme identique au scoreur serveur (SCORE_CONFIG) ----
-  const SCORE_CONFIG = { dyson:8, apple:9, samsung:7, bosch:7, philips:6, rowenta:5, dreame:4, cecotec:3 };
-  const DEFAULT_NOTE = 5;
+// LOGIQUE JS CORRIGÉE POUR IMPORT PYTHON
+const SCORE_CONFIG = { dyson:8, apple:9, samsung:7, bosch:7, philips:6, rowenta:5, dreame:4, cecotec:3 };
+const DEFAULT_NOTE = 5;
 
-  function scoreProduct(name, brand, unitPrice) {
+function scoreProduct(name, brand, unitPrice) {
     const hay = ((brand || "") + " " + (name || "")).toLowerCase();
     let note = DEFAULT_NOTE;
     for (const kw in SCORE_CONFIG) { if (hay.includes(kw)) { note = SCORE_CONFIG[kw]; break; } }
-    if (unitPrice > 500) note += 2;
-    else if (unitPrice > 200) note += 1;
-    else if (unitPrice < 30) note -= 1;
+    if (unitPrice > 500) note += 2; else if (unitPrice > 200) note += 1; else if (unitPrice < 30) note -= 1;
     return Math.max(0, Math.min(note, 10));
-  }
-  const noteColor = n => n >= 6 ? "green" : (n < 4 ? "red" : "neutral");
+}
+const noteColor = n => n >= 6 ? "green" : (n < 4 ? "red" : "neutral");
 
-  // ---- Calculateur temps reel ----
-  const val = id => parseFloat(document.getElementById(id).value) || 0;
-  const eur = n => n.toFixed(2) + " EUR";
+// Tranches de prix : critere cle pour juger si un lot vaut le coup avant achat.
+const PRICE_TIERS = [
+    { label: "Plus de 2000 EUR", min: 2000, max: Infinity },
+    { label: "1000 - 2000 EUR", min: 1000, max: 2000 },
+    { label: "500 - 1000 EUR", min: 500, max: 1000 },
+    { label: "250 - 500 EUR", min: 250, max: 500 },
+    { label: "100 - 250 EUR", min: 100, max: 250 },
+    { label: "50 - 100 EUR", min: 50, max: 100 },
+    { label: "Moins de 50 EUR", min: 0, max: 50 },
+];
 
-  function recalc() {
+function renderPriceTiers(products) {
+    const total = products.length;
+    const counts = PRICE_TIERS.map(t => products.filter(p => p.prix_neuf >= t.min && p.prix_neuf < t.max).length);
+
+    const grid = document.getElementById("tiers_grid");
+    grid.innerHTML = "";
+    PRICE_TIERS.forEach((t, i) => {
+        const pct = total ? (counts[i] / total * 100) : 0;
+        let tone = "tier-neutral";
+        if (t.max <= 100) tone = "tier-bad";
+        else if (t.min >= 500) tone = "tier-good";
+
+        const card = document.createElement("div");
+        card.className = "tier-chip " + tone;
+        card.innerHTML = `
+            <span class="tier-count">${counts[i]}</span>
+            <span class="tier-label">${t.label}</span>
+            <span class="tier-pct">${pct.toFixed(1)} %</span>
+        `;
+        grid.appendChild(card);
+    });
+    document.getElementById("tiers_card").style.display = "block";
+}
+
+const val = id => parseFloat(document.getElementById(id).value) || 0;
+const eur = n => n.toFixed(2) + " EUR";
+
+function recalc() {
     const retail = val("estimated_retail_total");
     const qty = val("quantity");
     const bid = val("bid_price");
     const feePct = val("auction_fee_percent");
     const ship = val("shipping_cost");
+    const pallets = val("pallet_count");
+    const resaleRate = (parseFloat(document.getElementById("resale_rate")?.value) || 30) / 100;
 
-    const resaleRate = (parseFloat(document.getElementById("resale_rate").value) || 30) / 100;
-    const realSales = retail * resaleRate;           // taux de revente ajustable
+    const realSales = retail * resaleRate;
     const totalCost = bid + bid * feePct / 100 + ship;
     const unitCost = qty ? totalCost / qty : 0;
     const unitSales = qty ? realSales / qty : 0;
-    const margin = unitSales ? (unitSales - unitCost) / unitSales * 100 : 0;
     const coeff = totalCost ? realSales / totalCost : 0;
-    const costRatio = retail ? totalCost / retail * 100 : 0;
+    const ratioAchat = retail ? totalCost / retail * 100 : 0;
+    const marge = realSales - totalCost;
 
-    document.getElementById("r_real_sales").textContent = eur(realSales);
-    document.getElementById("r_total_cost").textContent = eur(totalCost);
-    document.getElementById("r_unit_cost").textContent = eur(unitCost);
-    document.getElementById("r_unit_sales").textContent = eur(unitSales);
-    document.getElementById("r_coeff").textContent = "x" + coeff.toFixed(2);
-    document.getElementById("r_margin").textContent = margin.toFixed(1) + " %";
-    document.getElementById("r_rate_label").textContent = (resaleRate * 100).toFixed(0);
+    // ---- Titre / score ----
+    document.getElementById("score_title").textContent = document.getElementById("lot_number").value || "Nouveau lot";
+    document.getElementById("score_date_val").textContent = "";
+    const score = Math.max(0, Math.min(20, Math.round(coeff * 6)));
+    document.getElementById("r_score").textContent = score;
+    const badge = document.getElementById("r_score_badge");
+    if (score >= 14) { badge.textContent = "BON"; badge.style.background = "#34d399"; }
+    else if (score >= 8) { badge.textContent = "MOYEN"; badge.style.background = "#fbbf24"; }
+    else { badge.textContent = "RISQUE"; badge.style.background = "#f87171"; }
+
+    const rateDisp = document.getElementById("resale_rate_display");
+    if (rateDisp) rateDisp.textContent = (resaleRate * 100).toFixed(0) + "%";
+
+    // ---- KPI ----
+    document.getElementById("kpi_qty").textContent = qty + " pcs";
+    document.getElementById("kpi_per_pallet").textContent = pallets ? eur(totalCost / pallets) : "-";
+    document.getElementById("kpi_ratio").textContent = ratioAchat.toFixed(1) + " %";
+    document.getElementById("kpi_ratio_sub").textContent = `vs ${(resaleRate * 100).toFixed(0)}% valeur retenue`;
+    document.getElementById("kpi_margin").textContent = eur(marge);
+    document.getElementById("kpi_margin_sub").textContent = totalCost ? `${(marge / totalCost * 100).toFixed(0)}% profit` : "";
+
+    // ---- Valeurs du lot ----
+    document.getElementById("fin_retail").textContent = eur(retail);
+    document.getElementById("fin_realiste_label").textContent = `Valeur Realiste (${(resaleRate * 100).toFixed(0)}%)`;
+    document.getElementById("fin_realiste").textContent = eur(realSales);
+    document.getElementById("fin_total").textContent = eur(totalCost);
+    document.getElementById("fin_avg_brut").textContent = qty ? eur(retail / qty) : "-";
+    document.getElementById("fin_avg_realiste").textContent = qty ? eur(unitSales) : "-";
+    document.getElementById("fin_unit_cost").textContent = eur(unitCost);
+
+    // ---- Message + verdict ----
     document.getElementById("r_message").textContent = totalCost
-      ? `Si tu revends a ${(resaleRate * 100).toFixed(0)}%, ton coefficient est x${coeff.toFixed(2)} (le lot coute ${costRatio.toFixed(0)}% du neuf).`
-      : "";
+      ? `Si tu revends a ${(resaleRate * 100).toFixed(0)}%, ton coefficient est x${coeff.toFixed(2)} (le lot coute ${ratioAchat.toFixed(0)}% du neuf).` : "";
 
     const v = document.getElementById("r_verdict");
-    ["red", "orange", "green"].forEach(c => document.getElementById("light_" + c).classList.remove("on"));
-    if (coeff >= 3) { v.textContent = "✅ OPPORTUNITE MASSIVE (x3+)"; v.className = "verdict verdict-ok"; document.getElementById("light_green").classList.add("on"); }
-    else if (coeff >= 2) { v.textContent = "✅ BON LOT"; v.className = "verdict verdict-mid"; document.getElementById("light_orange").classList.add("on"); }
-    else { v.textContent = "⚠️ MARGE INSUFFISANTE"; v.className = "verdict verdict-ko"; document.getElementById("light_red").classList.add("on"); }
-  }
-  document.querySelectorAll(".calc").forEach(el => el.addEventListener("input", recalc));
+    if (coeff >= 3) { v.textContent = "✅ OPPORTUNITE MASSIVE (x3+)"; v.className = "verdict-box verdict-ok"; }
+    else if (coeff >= 2) { v.textContent = "✅ BON LOT"; v.className = "verdict-box verdict-mid"; }
+    else { v.textContent = "⚠️ MARGE INSUFFISANTE"; v.className = "verdict-box verdict-ko"; }
+}
 
-  // Curseur de revente : synchronise range <-> number et rafraichit l'affichage.
-  const rateRange = document.getElementById("resale_rate");
-  const rateNum = document.getElementById("resale_rate_num");
-  const rateDisp = document.getElementById("resale_rate_display");
-  function syncRate(source) {
-    let v = parseFloat(source.value) || 30;
-    v = Math.max(5, Math.min(v, 80));
-    rateRange.value = v;
-    rateNum.value = v;
-    rateDisp.textContent = v + "%";
-    recalc();
-  }
-  rateRange.addEventListener("input", () => syncRate(rateRange));
-  rateNum.addEventListener("input", () => syncRate(rateNum));
+document.querySelectorAll(".calc").forEach(el => el.addEventListener("input", recalc));
+recalc();
 
-  recalc();
+// IMPORT VIA PYTHON SERVER
+async function analyzeWithPython() {
+    const fileInput = document.getElementById('manifest_file');
+    if (!fileInput.files.length) return alert('Sélectionnez un fichier d\'abord');
 
-  // ================= IMPORT MANIFESTE + MAPPING COLONNES =================
-  const norm = s => (s || "").toString().trim().toLowerCase();
+    const formData = new FormData();
+    formData.append('file', fileInput.files[0]);
 
-  // Donnees du fichier lu : { headers:[...], rows:[[...]], commaDecimal:bool }
-  let FILE_DATA = null;
+    const btn = document.getElementById("btn_analyze_file");
+    const summary = document.getElementById("import_summary");
+    btn.disabled = true; btn.textContent = "Analyse en cours...";
+    summary.textContent = "Parsing des prix europeens et extraction marques...";
 
-  // Valeurs par defaut du mapping (alias recherches dans les en-tetes).
-  const DEFAULTS = {
-    map_name:  ["designation", "nom produit", "nom", "produit", "description"],
-    map_price: ["prix neuf", "prix", "retail"],
-    map_brand: ["marque", "brand"],
-    map_qty:   ["qte", "quantite", "quantité", "qté", "qty"],
-  };
+    try {
+        const res = await fetch('/purchases/add/import', { method: 'POST', body: formData });
+        const data = await res.json();
 
-  function guessHeader(headers, aliases) {
-    for (const a of aliases) {
-      const hit = headers.find(h => norm(h) === a);
-      if (hit !== undefined) return hit;
-    }
-    for (const a of aliases) {
-      const hit = headers.find(h => norm(h).includes(a));
-      if (hit !== undefined) return hit;
-    }
-    return headers[0] || "";
-  }
+        if (data.success) {
+            summary.innerHTML = `✅ ${data.count} produits detectes | Total neuf: ${data.total_retail.toLocaleString('fr-FR')} €`;
+            document.getElementById('estimated_retail_total').value = data.total_retail.toFixed(2);
+            document.getElementById('quantity').value = data.count;
+            document.getElementById('product_count').textContent = data.count;
 
-  function populateMapping(headers) {
-    Object.keys(DEFAULTS).forEach(selId => {
-      const sel = document.getElementById(selId);
-      sel.innerHTML = headers.map(h => `<option value="${h}">${h}</option>`).join("");
-      sel.value = guessHeader(headers, DEFAULTS[selId]);
-    });
-    document.getElementById("mapping").style.display = "block";
-  }
-
-  // Lit le fichier -> remplit FILE_DATA + le mapping.
-  function loadFile(file) {
-    const isXlsx = file.name.toLowerCase().endsWith(".xlsx");
-    const reader = new FileReader();
-    reader.onload = e => {
-      try {
-        if (isXlsx) {
-          if (typeof XLSX === "undefined") {
-            document.getElementById("import_summary").textContent = "Lecture XLSX indisponible (SheetJS non charge). Convertissez en CSV.";
-            return;
-          }
-          const wb = XLSX.read(e.target.result, { type: "array" });
-          const sheet = wb.Sheets[wb.SheetNames[0]];
-          const aoa = XLSX.utils.sheet_to_json(sheet, { header: 1, blankrows: false });
-          if (!aoa.length) return;
-          FILE_DATA = { headers: aoa[0].map(String), rows: aoa.slice(1), commaDecimal: false };
+            const tbody = document.querySelector("#detail_table tbody");
+            tbody.innerHTML = '';
+            data.products.forEach(p => {
+                const note = scoreProduct(p.nom, p.marque, p.prix_neuf);
+                const tr = document.createElement("tr");
+                tr.className = "row-" + noteColor(note);
+                tr.innerHTML = `<td>${p.nom.substring(0, 80)}...</td><td><span class="badge-brand">${p.marque}</span></td><td>${p.prix_neuf.toFixed(2)} €</td><td>${p.quantite}</td><td><strong>${note}/10</strong></td>`;
+                tbody.appendChild(tr);
+            });
+            renderPriceTiers(data.products);
+            recalc();
         } else {
-          const lines = e.target.result.split(/\r?\n/).filter(l => l.trim() !== "");
-          if (!lines.length) return;
-          const delim = (lines[0].split(";").length > lines[0].split(",").length) ? ";" : ",";
-          FILE_DATA = {
-            headers: lines[0].split(delim),
-            rows: lines.slice(1).map(l => l.split(delim)),
-            commaDecimal: delim === ";",
-          };
+            summary.textContent = `❌ Erreur: ${data.error}`;
         }
-        populateMapping(FILE_DATA.headers);
-        document.getElementById("import_summary").textContent =
-          `${FILE_DATA.headers.length} colonnes detectees. Verifiez le mapping puis cliquez sur Analyser.`;
-      } catch (err) {
-        document.getElementById("import_summary").textContent = "Erreur de lecture du fichier.";
-      }
-    };
-    if (isXlsx) reader.readAsArrayBuffer(file);
-    else reader.readAsText(file, "UTF-8");
-  }
-
-  function toNum(s, commaDecimal) {
-    if (s === undefined || s === null) return 0;
-    let str = s.toString().replace(/[^\d.,-]/g, "");
-    if (commaDecimal) str = str.replace(/\./g, "").replace(",", ".");
-    return parseFloat(str) || 0;
-  }
-
-  // Construit les produits selon les colonnes SELECTIONNEES dans le mapping.
-  function buildFromMapping() {
-    const h = FILE_DATA.headers;
-    const iName = h.indexOf(document.getElementById("map_name").value);
-    const iPrice = h.indexOf(document.getElementById("map_price").value);
-    const iBrand = h.indexOf(document.getElementById("map_brand").value);
-    const iQty = h.indexOf(document.getElementById("map_qty").value);
-
-    const products = [];
-    FILE_DATA.rows.forEach(r => {
-      const name = iName >= 0 ? (r[iName] || "").toString().trim() : "";
-      if (!name) return;
-      const price = iPrice >= 0 ? toNum(r[iPrice], FILE_DATA.commaDecimal) : 0;
-      const brand = iBrand >= 0 ? (r[iBrand] || "").toString().trim() : "";
-      const qty = iQty >= 0 ? (Math.round(toNum(r[iQty], FILE_DATA.commaDecimal)) || 1) : 1;
-      products.push({ name, brand, price, qty });
-    });
-    return products;
-  }
-
-  function applyProducts(products) {
-    if (!products.length) {
-      document.getElementById("import_summary").textContent = "Aucun produit exploitable (verifiez le mapping des colonnes).";
-      return;
+    } catch (err) {
+        summary.textContent = '❌ Erreur réseau. Vérifiez que Flask tourne.';
+    } finally {
+        btn.disabled = false; btn.textContent = "✏️ Lancer l'Analyse";
     }
-    let totalRetail = 0, totalQty = 0;
-    const brands = new Set();
-    const tbody = document.querySelector("#detail_table tbody");
-    tbody.innerHTML = "";
-
-    products.forEach(p => {
-      totalRetail += p.price * p.qty;
-      totalQty += p.qty;
-      if (p.brand) brands.add(p.brand.toLowerCase());
-      const note = scoreProduct(p.name, p.brand, p.price);
-      const tr = document.createElement("tr");
-      tr.className = "row-" + noteColor(note);
-      tr.innerHTML = `<td>${p.name}</td><td>${p.brand || "-"}</td>` +
-        `<td>${p.price.toFixed(2)} EUR</td><td>${p.qty}</td><td><strong>${note}/10</strong></td>`;
-      tbody.appendChild(tr);
-    });
-
-    document.getElementById("estimated_retail_total").value = totalRetail.toFixed(2);
-    document.getElementById("quantity").value = totalQty;
-    recalc();
-
-    document.getElementById("import_summary").textContent =
-      `Fichier analyse : ${products.length} produits, ${brands.size} marques detectees.`;
-    document.getElementById("detail_block").style.display = "block";
-    document.getElementById("detail_block").open = true;
-  }
-
-  document.getElementById("manifest_file").addEventListener("change", e => {
-    const file = e.target.files[0];
-    if (file) loadFile(file);
-  });
-
-  document.getElementById("btn_analyze_file").addEventListener("click", () => {
-    if (!FILE_DATA) { document.getElementById("import_summary").textContent = "Selectionnez un fichier d'abord."; return; }
-    applyProducts(buildFromMapping());
-  });
+}
 </script>
-
-<style>
-  .upload-section { background:#f3f4f6; border:1px dashed #cbd5e1; border-radius:8px; padding:1rem 1.25rem; margin-bottom:1.5rem; }
-  .upload-section label { font-weight:600; margin-right:.5rem; }
-  .import-summary { margin-top:.6rem; color:#374151; font-weight:600; }
-  .calc-msg { margin-top:.6rem; font-size:.9rem; color:#374151; font-style:italic; }
-  .resale-control { display:flex; align-items:center; gap:1rem; flex-wrap:wrap; background:#eff6ff; border:1px solid #bfdbfe; border-radius:8px; padding:.9rem 1.25rem; margin-bottom:1.5rem; }
-  .resale-control label { font-weight:600; }
-  .resale-control input[type=range] { flex:1; min-width:180px; }
-  .resale-control .rate-num { width:80px; }
-  .rate-big { font-size:1.6rem; font-weight:800; color:#1e40af; min-width:70px; text-align:right; }
-  .mapping { margin:1rem 0; }
-  .mapping h4 { margin:.5rem 0; }
-  .map-grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(200px,1fr)); gap:.75rem; }
-  .map-grid label { display:flex; flex-direction:column; gap:.25rem; font-weight:600; }
-  .calc-layout { display:grid; grid-template-columns:1fr 1fr; gap:2rem; align-items:start; }
-  .calc-board { background:#f9fafb; border:1px solid #e5e7eb; border-radius:8px; padding:1.25rem; position:sticky; top:1rem; }
-  .calc-board h3 { margin-top:0; }
-  .calc-row { display:flex; justify-content:space-between; padding:.5rem 0; border-bottom:1px solid #eef0f2; }
-  .calc-row.big { font-size:1.15rem; border-bottom:none; margin-top:.5rem; }
-  .traffic { display:flex; gap:.6rem; justify-content:center; margin:1rem 0 .5rem; }
-  .light { width:26px; height:26px; border-radius:50%; background:#d1d5db; opacity:.35; }
-  #light_red.on { background:#dc2626; opacity:1; }
-  #light_orange.on { background:#f59e0b; opacity:1; }
-  #light_green.on { background:#16a34a; opacity:1; }
-  .verdict { padding:.6rem .9rem; border-radius:8px; font-weight:700; text-align:center; }
-  .verdict-ok { background:#dcfce7; color:#166534; }
-  .verdict-ko { background:#fee2e2; color:#991b1b; }
-  .verdict-mid { background:#fef9c3; color:#854d0e; }
-  .row-green td { background:#f0fdf4; }
-  .row-red td { background:#fef2f2; }
-  .row-neutral td { background:#fff; }
-  @media (max-width:800px){ .calc-layout { grid-template-columns:1fr; } }
-</style>
 {% endblock %}

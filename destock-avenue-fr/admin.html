@@ -1,0 +1,320 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin - Destock Avenue FR</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        :root {
+            --primary: #e41e24;
+            --dark: #1a1a1a;
+            --gray-light: #f8f8f8;
+            --gray-border: #e5e5e5;
+            --text: #2a2a2a;
+        }
+        body {
+            font-family: 'Inter', sans-serif;
+            background: var(--gray-light);
+            color: var(--text);
+        }
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+        h1 {
+            margin-bottom: 2rem;
+            color: var(--primary);
+        }
+        .form-group {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1rem;
+            margin-bottom: 1.5rem;
+        }
+        input, select {
+            padding: 0.75rem;
+            border: 1px solid var(--gray-border);
+            border-radius: 4px;
+            font-size: 0.95rem;
+        }
+        button {
+            padding: 0.75rem 1.5rem;
+            background: var(--primary);
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.2s;
+        }
+        button:hover {
+            opacity: 0.9;
+            transform: translateY(-1px);
+        }
+        button.delete {
+            background: #dc3545;
+            padding: 0.5rem 1rem;
+            font-size: 0.85rem;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            background: white;
+            border-radius: 6px;
+            overflow: hidden;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+        }
+        th {
+            background: var(--primary);
+            color: white;
+            padding: 1rem;
+            text-align: left;
+            font-weight: 600;
+        }
+        td {
+            padding: 1rem;
+            border-bottom: 1px solid var(--gray-border);
+        }
+        tr:hover {
+            background: var(--gray-light);
+        }
+        .message {
+            padding: 1rem;
+            margin-bottom: 1rem;
+            border-radius: 4px;
+            display: none;
+        }
+        .message.success {
+            background: #d4edda;
+            color: #155724;
+            display: block;
+        }
+        .message.error {
+            background: #f8d7da;
+            color: #721c24;
+            display: block;
+        }
+        .stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1rem;
+            margin-bottom: 2rem;
+        }
+        .stat-box {
+            background: white;
+            padding: 1.5rem;
+            border-radius: 6px;
+            border-left: 4px solid var(--primary);
+        }
+        .stat-box h3 {
+            font-size: 0.9rem;
+            color: var(--text-light);
+            margin-bottom: 0.5rem;
+        }
+        .stat-box .number {
+            font-size: 2rem;
+            font-weight: 700;
+            color: var(--primary);
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🔴 Admin - Gestion des Produits</h1>
+
+        <div id="message" class="message"></div>
+
+        <div class="stats">
+            <div class="stat-box">
+                <h3>Total Produits</h3>
+                <div class="number" id="totalProducts">0</div>
+            </div>
+            <div class="stat-box">
+                <h3>Catégories</h3>
+                <div class="number" id="totalCategories">0</div>
+            </div>
+        </div>
+
+        <h2 style="margin-top: 2rem; margin-bottom: 1rem;">Ajouter/Modifier un Produit</h2>
+
+        <form id="productForm">
+            <div class="form-group">
+                <input type="text" id="id" placeholder="ID (auto-généré)" readonly style="background: #f0f0f0; cursor: not-allowed;">
+                <select id="category" required>
+                    <option value="">Sélectionne catégorie</option>
+                    <option value="aspirateurs">Aspirateurs Robots</option>
+                    <option value="cafetiere">Cafetières</option>
+                    <option value="airfryer">Air Fryers</option>
+                    <option value="robots">Robots Cuiseur</option>
+                    <option value="electromenager">Électroménager</option>
+                    <option value="autres">Autres</option>
+                </select>
+                <input type="text" id="name" placeholder="Nom du produit" required>
+                <input type="number" id="price" placeholder="Prix actuel €" step="0.01" required>
+                <input type="number" id="original_price" placeholder="Prix original €" step="0.01" required>
+                <input type="text" id="discount" placeholder="Réduction (ex: -42%)">
+                <input type="number" id="stock" placeholder="Stock" value="0" required>
+                <div style="display: flex; gap: 0.5rem;">
+                    <input type="file" id="imageFile" accept="image/*" style="flex: 1;">
+                    <button type="button" onclick="uploadImage()" style="background: #6c757d;">📸 Upload</button>
+                </div>
+                <input type="text" id="image" placeholder="URL image (auto-rempli)" readonly style="background: #f0f0f0; grid-column: 1 / -1;">
+                <button type="submit" style="grid-column: 1 / -1;">✅ Ajouter/Modifier</button>
+            </div>
+        </form>
+
+        <h2 style="margin-top: 2rem; margin-bottom: 1rem;">Tous les Produits</h2>
+        <table>
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Catégorie</th>
+                    <th>Nom</th>
+                    <th>Prix</th>
+                    <th>Stock</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody id="productsList"></tbody>
+        </table>
+    </div>
+
+    <script>
+        const API = 'http://localhost:3002/api/products';
+
+        // Auto-générer l'ID à partir du nom
+        document.getElementById('name').addEventListener('input', (e) => {
+            const name = e.target.value;
+            const id = name
+                .toLowerCase()
+                .trim()
+                .replace(/[éèê]/g, 'e')
+                .replace(/[àâ]/g, 'a')
+                .replace(/[ù]/g, 'u')
+                .replace(/[^a-z0-9]/g, '-')
+                .replace(/-+/g, '-')
+                .replace(/^-|-$/g, '');
+            document.getElementById('id').value = id;
+        });
+
+        // Upload image
+        async function uploadImage() {
+            const file = document.getElementById('imageFile').files[0];
+            if (!file) return showMessage('Sélectionne une image', 'error');
+
+            const formData = new FormData();
+            formData.append('image', file);
+
+            try {
+                const res = await fetch('http://localhost:3002/api/upload', {
+                    method: 'POST',
+                    body: formData
+                });
+
+                if (res.ok) {
+                    const data = await res.json();
+                    document.getElementById('image').value = data.url;
+                    showMessage('✅ Image uploadée!', 'success');
+                } else {
+                    showMessage('❌ Erreur upload', 'error');
+                }
+            } catch (err) {
+                showMessage('Erreur: ' + err.message, 'error');
+            }
+        }
+
+        async function loadProducts() {
+            try {
+                const res = await fetch(API);
+                const products = await res.json();
+
+                const tbody = document.getElementById('productsList');
+                tbody.innerHTML = '';
+
+                let categories = new Set();
+
+                products.forEach(p => {
+                    categories.add(p.category);
+                    const row = `
+                        <tr>
+                            <td>${p.id}</td>
+                            <td>${p.category}</td>
+                            <td>${p.name}</td>
+                            <td>${p.price}€</td>
+                            <td>${p.stock}</td>
+                            <td>
+                                <button class="delete" onclick="deleteProduct('${p.id}')">Supprimer</button>
+                            </td>
+                        </tr>
+                    `;
+                    tbody.innerHTML += row;
+                });
+
+                document.getElementById('totalProducts').textContent = products.length;
+                document.getElementById('totalCategories').textContent = categories.size;
+            } catch (err) {
+                showMessage('Erreur: ' + err.message, 'error');
+            }
+        }
+
+        document.getElementById('productForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+
+            const product = {
+                id: document.getElementById('id').value,
+                category: document.getElementById('category').value,
+                name: document.getElementById('name').value,
+                price: parseFloat(document.getElementById('price').value),
+                original_price: parseFloat(document.getElementById('original_price').value),
+                discount: document.getElementById('discount').value,
+                stock: parseInt(document.getElementById('stock').value),
+                image: document.getElementById('image').value || 'https://picsum.photos/300/300?random=99'
+            };
+
+            try {
+                const res = await fetch(API, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(product)
+                });
+
+                if (res.ok) {
+                    showMessage('✅ Produit ajouté avec succès!', 'success');
+                    document.getElementById('productForm').reset();
+                    loadProducts();
+                } else {
+                    showMessage('❌ Erreur: ' + (await res.json()).error, 'error');
+                }
+            } catch (err) {
+                showMessage('Erreur réseau: ' + err.message, 'error');
+            }
+        });
+
+        async function deleteProduct(id) {
+            if (!confirm('Supprimer ce produit ?')) return;
+
+            try {
+                const res = await fetch(`${API}/${id}`, { method: 'DELETE' });
+                if (res.ok) {
+                    showMessage('✅ Produit supprimé!', 'success');
+                    loadProducts();
+                }
+            } catch (err) {
+                showMessage('Erreur: ' + err.message, 'error');
+            }
+        }
+
+        function showMessage(msg, type) {
+            const el = document.getElementById('message');
+            el.textContent = msg;
+            el.className = `message ${type}`;
+            setTimeout(() => el.className = 'message', 5000);
+        }
+
+        loadProducts();
+    </script>
+</body>
+</html>

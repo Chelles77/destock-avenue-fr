@@ -1,0 +1,36 @@
+{% extends "base.html" %}
+{% block title %}Ajouter une charge - ReventePro V4{% endblock %}
+
+{% block content %}
+<div class="page-head">
+  <h1>Ajouter une charge</h1>
+  <a class="btn" href="{{ url_for('finance.index') }}">Retour</a>
+</div>
+
+<form method="post" class="form" novalidate>
+  {{ form.hidden_tag() }}
+
+  <div class="field">
+    {{ form.category.label }}
+    {{ form.category(class="input", placeholder="ex: Loyer, Plateforme, Emballage") }}
+    {% for e in form.category.errors %}<span class="error">{{ e }}</span>{% endfor %}
+  </div>
+
+  <div class="field">
+    {{ form.amount.label }}
+    {{ form.amount(class="input", type="number", step="0.01") }}
+    {% for e in form.amount.errors %}<span class="error">{{ e }}</span>{% endfor %}
+  </div>
+
+  <div class="field field-inline">
+    {{ form.is_fixed() }} {{ form.is_fixed.label }}
+  </div>
+
+  <div class="field">
+    {{ form.description.label }}
+    {{ form.description(class="input", rows="3") }}
+  </div>
+
+  {{ form.submit(class="btn btn-primary") }}
+</form>
+{% endblock %}

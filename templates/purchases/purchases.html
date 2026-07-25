@@ -3,48 +3,60 @@
 
 {% block content %}
 <div class="page-head">
-  <h1>Achats de lots</h1>
+  <h1>🧱 Gestion des Achats &amp; Lots</h1>
   <div>
     <a class="btn" href="{{ url_for('purchases.comparative') }}">Historique comparatif</a>
-    <a class="btn btn-primary" href="{{ url_for('purchases.add') }}">+ Nouvelle simulation</a>
+    <a class="btn btn-primary" href="{{ url_for('purchases.add') }}">+ Nouvel Achat de Lot</a>
   </div>
 </div>
 
-{% if lots %}
-<table class="table">
+{% if lot_rows %}
+<div class="card" style="overflow-x:auto; padding:0;">
+<table class="table lots-table">
   <thead>
     <tr>
-      <th>Lot</th>
-      <th>Source</th>
-      <th>Categorie</th>
-      <th>Invest.</th>
-      <th>CA genere</th>
-      <th>ROI</th>
-      <th>Statut</th>
-      <th>Date</th>
+      <th>Lot / Date</th>
+      <th>Fournisseur</th>
+      <th>Cout Total</th>
+      <th>Pieces</th>
+      <th>Prix Revient /pc</th>
+      <th>Vendus / Restants</th>
+      <th>CA Genere</th>
+      <th>Marge Brute</th>
       <th></th>
     </tr>
   </thead>
   <tbody>
-    {% for lot in lots %}
+    {% for row in lot_rows %}
+    {% set lot = row.lot %}
     <tr>
-      <td>{{ lot.name }}</td>
-      <td>{{ lot.source_platform or '-' }}</td>
-      <td>{{ lot.category or '-' }}</td>
-      <td>{{ '%.2f'|format(lot.total_investment) }} EUR</td>
-      <td>{{ '%.2f'|format(lot.generated_revenue) }} EUR</td>
       <td>
-        <span class="{{ 'badge-green' if lot.is_profitable else 'badge-red' }}">
-          {{ lot.roi_percent }} %
-        </span>
+        <strong># {{ lot.lot_number }}</strong>
+        <div class="muted" style="font-size:0.78rem;">{{ lot.date.strftime('%Y-%m-%d') }}</div>
       </td>
-      <td>{{ 'Achete' if lot.is_purchased else 'Simule' }}</td>
-      <td>{{ lot.date.strftime('%d/%m/%Y') }}</td>
+      <td>{{ lot.source_platform or '-' }}</td>
+      <td class="cell-cost">{{ '%.2f'|format(lot.total_cost) }} EUR</td>
+      <td><span class="badge badge-gray">{{ lot.quantity }} pcs</span></td>
+      <td class="cell-unit">{{ '%.2f'|format(lot.unit_cost) }} EUR</td>
+      <td>
+        <div class="progress-cell">
+          <span class="progress-badge">{{ row.sold }}v</span>
+          <div class="progress-track">
+            <div class="progress-fill" style="width:{{ row.progress_pct }}%;"></div>
+          </div>
+          <span class="muted" style="font-size:0.75rem;">{{ row.remaining }} restants</span>
+        </div>
+      </td>
+      <td class="cell-ca">{{ '%.2f'|format(lot.generated_revenue) }} EUR</td>
+      <td class="{{ 'cell-margin-pos' if row.gross_margin >= 0 else 'cell-margin-neg' }}">
+        {{ '%.2f'|format(row.gross_margin) }} EUR
+      </td>
       <td><a class="btn btn-small" href="{{ url_for('purchases.detail', lot_id=lot.id) }}">Detail</a></td>
     </tr>
     {% endfor %}
   </tbody>
 </table>
+</div>
 
 {% if pagination.pages > 1 %}
 <div class="pagination">
@@ -61,4 +73,21 @@
 {% else %}
 <p class="muted">Aucun lot enregistre. Commencez par en ajouter un.</p>
 {% endif %}
+
+<style>
+  .lots-table th, .lots-table td { padding: 1rem; }
+  .cell-cost { color: #f87171; font-weight: 700; }
+  .cell-unit { color: #38bdf8; font-weight: 700; }
+  .cell-ca { color: #34d399; font-weight: 700; }
+  .cell-margin-pos { color: #34d399; font-weight: 800; }
+  .cell-margin-neg { color: #f87171; font-weight: 800; }
+
+  .progress-cell { display: flex; align-items: center; gap: 0.5rem; min-width: 220px; }
+  .progress-badge {
+    background: #16a34a; color: #fff; font-size: 0.7rem; font-weight: 800;
+    padding: 0.15rem 0.45rem; border-radius: 6px; flex-shrink: 0;
+  }
+  .progress-track { flex: 1; height: 8px; background: rgba(148, 163, 184, 0.2); border-radius: 99px; overflow: hidden; }
+  .progress-fill { height: 100%; background: #34d399; border-radius: 99px; }
+</style>
 {% endblock %}

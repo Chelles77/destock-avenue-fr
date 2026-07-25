@@ -31,12 +31,6 @@
       {% for error in form.confirm.errors %}<span class="error">{{ error }}</span>{% endfor %}
     </div>
 
-    <div class="field">
-      {{ form.admin_password.label }}
-      {{ form.admin_password(class="input", placeholder="Mot de passe admin") }}
-      {% for error in form.admin_password.errors %}<span class="error">{{ error }}</span>{% endfor %}
-    </div>
-
     {{ form.submit(class="btn btn-primary") }}
   </form>
   <p class="auth-alt">Deja inscrit ? <a href="{{ url_for('auth.login') }}">Se connecter</a></p>

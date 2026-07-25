@@ -7,9 +7,9 @@
   <a class="btn" href="{{ url_for('inventory.raw_products') }}">Retour</a>
 </div>
 
-{% if raw.main_image_path %}
+{% if raw.image_path %}
 <div class="preview">
-  <img src="{{ url_for('static', filename='uploads/' ~ raw.main_image_path) }}"
+  <img src="{{ url_for('uploaded_file', filename=raw.image_path) }}"
        alt="{{ raw.name }}" class="preview-img">
 </div>
 {% endif %}
@@ -26,19 +26,29 @@
 
   <div class="field">
     {{ form.marketplace_title.label }}
-    {{ form.marketplace_title(class="input") }}
+    {{ form.marketplace_title(class="input", id="ad_title") }}
     {% for e in form.marketplace_title.errors %}<span class="error">{{ e }}</span>{% endfor %}
   </div>
 
   <div class="field">
     {{ form.marketplace_description.label }}
-    {{ form.marketplace_description(class="input", rows="6") }}
+    {{ form.marketplace_description(class="input", rows="6", id="ad_description") }}
     {% for e in form.marketplace_description.errors %}<span class="error">{{ e }}</span>{% endfor %}
   </div>
 
   <div class="field">
     {{ form.condition.label }}
-    {{ form.condition(class="input") }}
+    {{ form.condition(class="input", id="ad_condition") }}
+  </div>
+
+  <div class="field">
+    {{ form.packaging_condition.label }}
+    {{ form.packaging_condition(class="input", id="ad_packaging") }}
+  </div>
+
+  <div class="field">
+    {{ form.target_platform.label }}
+    {{ form.target_platform(class="input") }}
   </div>
 
   <div class="field">
@@ -49,7 +59,7 @@
 
   <div class="field">
     {{ form.sell_price.label }}
-    {{ form.sell_price(class="input", type="number", step="0.01") }}
+    {{ form.sell_price(class="input", type="number", step="0.01", id="ad_price") }}
     {% for e in form.sell_price.errors %}<span class="error">{{ e }}</span>{% endfor %}
   </div>
 
@@ -66,4 +76,41 @@
 
   {{ form.submit(class="btn btn-primary") }}
 </form>
+
+<div class="card" style="margin-top:1.5rem;">
+  <h3>Annonce prete a copier</h3>
+  <p class="muted">Genere un texte a partir des champs ci-dessus, pret a coller sur Vinted / Leboncoin / eBay.</p>
+  <button type="button" class="btn" id="btn_generate_ad">Generer l'annonce</button>
+  <textarea id="ad_output" class="input" rows="8" readonly style="margin-top:1rem;"></textarea>
+  <button type="button" class="btn btn-primary" id="btn_copy_ad" style="margin-top:0.75rem;">Copier l'annonce</button>
+  <span id="copy_feedback" class="muted" style="margin-left:0.75rem;"></span>
+</div>
+
+<script>
+document.getElementById("btn_generate_ad").addEventListener("click", function () {
+  const title = document.getElementById("ad_title").value || "";
+  const price = document.getElementById("ad_price").value || "";
+  const condition = document.getElementById("ad_condition").value || "";
+  const packaging = document.getElementById("ad_packaging").value || "";
+  const description = document.getElementById("ad_description").value || "";
+
+  let lines = [title];
+  lines.push("");
+  if (price) lines.push("Prix : " + price + " EUR");
+  if (condition) lines.push("Etat du produit : " + condition);
+  if (packaging) lines.push("Emballage : " + packaging);
+  if (description) { lines.push(""); lines.push(description); }
+
+  document.getElementById("ad_output").value = lines.join("\n");
+  document.getElementById("copy_feedback").textContent = "";
+});
+
+document.getElementById("btn_copy_ad").addEventListener("click", function () {
+  const output = document.getElementById("ad_output");
+  if (!output.value) return;
+  navigator.clipboard.writeText(output.value).then(function () {
+    document.getElementById("copy_feedback").textContent = "Copie !";
+  });
+});
+</script>
 {% endblock %}

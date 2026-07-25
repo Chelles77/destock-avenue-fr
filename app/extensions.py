@@ -11,10 +11,15 @@
 
 from flask_sqlalchemy import SQLAlchemy
 from flask_login import LoginManager
+from flask_migrate import Migrate
 
 # ORM : point d'entree unique vers la base de donnees.
 # Tous les modeles heritent de db.Model.
 db = SQLAlchemy()
+
+# Migrations de schema (Alembic) : permet d'ajouter/modifier des colonnes
+# sans effacer la base existante (contrairement a db.create_all()).
+migrate = Migrate()
 
 # Gestionnaire de sessions utilisateur (cookies, current_user, @login_required).
 login_manager = LoginManager()

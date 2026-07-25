@@ -4,6 +4,9 @@
 # Enregistre par la factory sur /purchases. Requetes isolees par user_id.
 # -----------------------------------------------------------------------------
 
+import re
+from datetime import datetime
+import pandas as pd
 from flask import (
     Blueprint, render_template, redirect, url_for, flash, request, jsonify,
 )
@@ -114,6 +117,108 @@ def _analyze_lot(lot):
 
 
 # ===========================================================================
+# IMPORT EXCEL B-STOCK (CORRECTION BUG PRIX EU + MARQUES)
+# ===========================================================================
+@bp.route("/add/import", methods=["POST"])
+@login_required
+def import_excel():
+    """Parse spécifiquement les manifests B-Stock et retourne les données propres."""
+    if 'file' not in request.files:
+        return jsonify({"error": "Aucun fichier"}), 400
+        
+    file = request.files['file']
+    if file.filename == '':
+        return jsonify({"error": "Fichier vide"}), 400
+        
+    try:
+        # sheet_name=0 : 1re feuille quel que soit son nom (robuste B-Stock)
+        df = pd.read_excel(file, sheet_name=0)
+        # Normalise les en-têtes (espaces parasites : 'TOTAL RETAIL ')
+        df.columns = [str(c).strip() for c in df.columns]
+
+        # Fichier simplifie accepte : si pas de colonne 'Item Desc'/'TOTAL RETAIL',
+        # on prend juste la 1ere colonne numerique comme prix, sans nom de produit.
+        has_desc_col = "Item Desc" in df.columns
+        price_col = "TOTAL RETAIL" if "TOTAL RETAIL" in df.columns else df.columns[0]
+
+        products = []
+        known_brands = {
+            'DREAME', 'ECOVACS', 'IROBOT', 'DYSON', 'BOSCH', 'PHILIPS', 
+            'ROWENTA', 'TEFAL', 'NINJA', 'XIAOMI', 'MOULINEX', 'SEVERIN',
+            'KENWOOD', 'KRUPS', 'DELONGHI', 'SODASTREAM', 'SHARK', 'EUREKA',
+            'MOVA', 'ROBOROCK', 'TINECO', 'VEXILAR', 'LEVOIT', 'CECOTEC',
+            'PROSCENIC', 'LACOR', 'ZWILLING', 'BRAUN', 'KITCHENAID', 'HOOVER',
+            'SAMSUNG', 'APPLE', 'AMAZON', 'BASEUS', 'ANKER', 'DELONGHI',
+            'PHILIPS', 'KRUPS', 'KENWOOD', 'SEVERIN', 'ROWENTA', 'TEFAL',
+            'NINJA', 'XIAOMI', 'MOULINEX', 'SHARK', 'EUREKA', 'MOVA',
+            'ROBOROCK', 'TINECO', 'VEXILAR', 'LEVOIT', 'CECOTEC', 'PROSCENIC',
+            'LACOR', 'ZWILLING', 'BRAUN', 'KITCHENAID', 'HOOVER', 'SODASTREAM'
+        }
+        
+        for idx, row in df.iterrows():
+            price_raw = row.get(price_col)
+
+            # Filtre explicite des cellules vides Excel (NaN) : evite les produits fantomes "nan"
+            if pd.isna(price_raw):
+                continue
+
+            if has_desc_col:
+                desc_raw = row.get('Item Desc')
+                if pd.isna(desc_raw):
+                    continue
+                desc = str(desc_raw).strip()
+                # Filtre les lignes vides ou en-têtes dupliqués
+                if not desc or desc.lower() == 'item desc':
+                    continue
+            else:
+                # Fichier simplifie (prix seuls) : nom generique numerote.
+                desc = f"Produit {idx + 1}"
+
+            # Extraction intelligente de la MARQUE (insensible a la casse + ponctuation collee)
+            brand = "Non identifiée"
+            for w in desc.split()[:3]:
+                clean_w = re.sub(r'[^A-Za-z0-9]', '', w).upper()
+                if clean_w in known_brands:
+                    brand = clean_w.title()
+                    break
+
+            # Nettoyage du prix : ne parser en string EU que si Pandas ne l'a pas deja converti en nombre
+            if isinstance(price_raw, str):
+                price_str = price_raw.strip()
+                if price_str.lower() == 'total retail':
+                    continue
+                # Nettoyage CRITIQUE du prix format EU : "1.911,38 €" → 1911.38
+                price_clean = price_str.replace('€', '').replace(' ', '')
+                price_clean = price_clean.replace('.', '')   # Supprime séparateur milliers
+                price_clean = price_clean.replace(',', '.')  # Virgule décimale → point
+                try:
+                    price_new = float(price_clean)
+                except ValueError:
+                    price_new = 0.0
+            else:
+                # Deja un nombre (float/int) : pas de re-parsing string, sinon 1911.38 -> 191138
+                price_new = float(price_raw)
+
+            # Quantité = 1 par défaut (standard manifest B-Stock unitaire)
+            products.append({
+                'nom': desc[:255],
+                'marque': brand,
+                'prix_neuf': round(price_new, 2),
+                'quantite': 1
+            })
+            
+        return jsonify({
+            "success": True,
+            "count": len(products),
+            "products": products,
+            "total_retail": sum(p['prix_neuf'] for p in products)
+        })
+        
+    except Exception as e:
+        return jsonify({"error": f"Erreur parsing: {str(e)}"}), 500
+
+
+# ===========================================================================
 # LISTE
 # ===========================================================================
 @bp.route("/")
@@ -123,8 +228,27 @@ def index():
     pagination = PurchaseLot.query.filter_by(user_id=current_user.id).order_by(
         PurchaseLot.date.desc()
     ).paginate(page=page, per_page=PER_PAGE, error_out=False)
+
+    lot_rows = []
+    for lot in pagination.items:
+        sold = 0
+        for rp in lot.raw_products:
+            for it in rp.stock_items:
+                if it.sale is not None:
+                    sold += 1
+        qty = lot.quantity or 0
+        remaining = max(qty - sold, 0)
+        progress_pct = round(sold / qty * 100, 1) if qty else 0.0
+        lot_rows.append({
+            "lot": lot,
+            "sold": sold,
+            "remaining": remaining,
+            "progress_pct": progress_pct,
+            "gross_margin": round(lot.generated_revenue - lot.total_cost, 2),
+        })
+
     return render_template("purchases/purchases.html", pagination=pagination,
-                           lots=pagination.items)
+                           lot_rows=lot_rows)
 
 
 # ===========================================================================
@@ -160,6 +284,7 @@ def add():
             name=lot_number,
             estimated_retail_total=form.estimated_retail_total.data or 0.0,
             quantity=form.quantity.data or 1,
+            pallet_count=form.pallet_count.data,
             bid_price=form.bid_price.data or 0.0,
             auction_fee_percent=(form.auction_fee_percent.data
                                  if form.auction_fee_percent.data is not None else 5.0),
@@ -167,6 +292,8 @@ def add():
             is_purchased=bool(form.is_purchased.data),
             user_id=current_user.id,
         )
+        if form.purchase_date.data:
+            lot.date = datetime.combine(form.purchase_date.data, datetime.min.time())
         db.session.add(lot)
         db.session.commit()
         etat = "achete" if lot.is_purchased else "simule"
@@ -344,3 +471,22 @@ def analyze(lot_id):
         badges=badges,
         total_qty=total,
     )
+
+
+# ===========================================================================
+# UTILITAIRE MEMOIRE TAGS
+# ===========================================================================
+def _remember_tag(tag_type, label):
+    """Ajoute un tag a la memoire utilisateur s'il n'existe pas deja."""
+    if not label:
+        return
+    label = label.strip()
+    if not label:
+        return
+    existing = PurchaseTag.query.filter_by(
+        user_id=current_user.id, tag_type=tag_type, label=label
+    ).first()
+    if not existing:
+        db.session.add(PurchaseTag(
+            user_id=current_user.id, tag_type=tag_type, label=label
+        ))

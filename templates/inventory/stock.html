@@ -1,68 +1,173 @@
 {% extends "base.html" %}
-{% block title %}Stock - ReventePro V4{% endblock %}
+{% block title %}Stock Prêt à Vendre - ReventePro V4{% endblock %}
 
 {% block content %}
-<div class="page-head">
-  <h1>Stock</h1>
+<div class="stock-header">
+  <div>
+    <h1>📦 Stock Prêt à Vendre</h1>
+    <p class="subtitle">Produits validés, disponibles pour la mise en vente</p>
+  </div>
+  <a href="{{ url_for('sales.index') }}" class="btn btn-green">Voir les Ventes en Cours</a>
 </div>
 
-{# Filtres par statut #}
-<div class="filters">
-  <a class="btn btn-small {{ 'active' if not current_status }}" href="{{ url_for('inventory.stock') }}">Tous</a>
-  <a class="btn btn-small {{ 'active' if current_status == 'draft' }}" href="{{ url_for('inventory.stock', status='draft') }}">Brouillons</a>
-  <a class="btn btn-small {{ 'active' if current_status == 'available' }}" href="{{ url_for('inventory.stock', status='available') }}">Disponibles</a>
-  <a class="btn btn-small {{ 'active' if current_status == 'sold' }}" href="{{ url_for('inventory.stock', status='sold') }}">Vendus</a>
-</div>
-
-{% set badges = {'draft': 'badge-gray', 'available': 'badge-green', 'sold': 'badge-red', 'archived': 'badge-gray'} %}
+{% set badges = {'draft': 'D', 'available': 'A', 'sold': 'V', 'archived': 'A'} %}
 
 {% if items %}
-<table class="table">
-  <thead>
-    <tr>
-      <th>Titre marketplace</th>
-      <th>Etat</th>
-      <th>Achat</th>
-      <th>Vente</th>
-      <th>Statut</th>
-      <th></th>
-    </tr>
-  </thead>
-  <tbody>
-    {% for it in items %}
-    <tr>
-      <td>{{ it.marketplace_title or it.name }}</td>
-      <td>{{ it.condition or '-' }}</td>
-      <td>{{ '%.2f'|format(it.buy_price) }} EUR</td>
-      <td>{{ '%.2f'|format(it.sell_price) }} EUR</td>
-      <td><span class="badge {{ badges.get(it.status, 'badge-gray') }}">{{ it.status }}</span></td>
-      <td>
-        <a class="btn btn-small"
-           href="{{ url_for('inventory.edit_stock', stock_item_id=it.id, status=current_status) }}">Editer</a>
-        {% if it.status == 'draft' %}
-          <a class="btn btn-small btn-primary"
-             href="{{ url_for('inventory.publish', stock_item_id=it.id, status=current_status) }}">Publier</a>
-        {% elif it.status == 'available' %}
-          <a class="btn btn-small btn-primary"
-             href="{{ url_for('sales.add', stock_item_id=it.id) }}">Vendre</a>
-        {% endif %}
-      </td>
-    </tr>
-    {% endfor %}
-  </tbody>
-</table>
-
-{% if pagination.pages > 1 %}
-<div class="pagination">
-  {% if pagination.has_prev %}
-    <a href="{{ url_for('inventory.stock', page=pagination.prev_num, status=current_status) }}">&laquo; Precedent</a>
-  {% endif %}
-  <span>Page {{ pagination.page }} / {{ pagination.pages }}</span>
-  {% if pagination.has_next %}
-    <a href="{{ url_for('inventory.stock', page=pagination.next_num, status=current_status) }}">Suivant &raquo;</a>
-  {% endif %}
+<div class="stock-controls">
+  <div class="search-box">
+    <input type="text" placeholder="Rechercher par nom ou numéro..." class="search-input">
+  </div>
+  <select class="filter-select">
+    <option>Tous les états</option>
+    <option value="draft">Brouillons</option>
+    <option value="available">Disponibles</option>
+    <option value="sold">Vendus</option>
+    <option value="archived">Archives</option>
+  </select>
+  <button class="btn btn-primary">Filtrer</button>
 </div>
-{% endif %}
+
+<div class="stock-table-container">
+  <table class="stock-table">
+    <thead>
+      <tr>
+        <th>Photo</th>
+        <th>Produit</th>
+        <th>État</th>
+        <th>Prix Achat</th>
+        <th>Prix Neuf</th>
+        <th>Actions</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for it in items %}
+      <tr class="stock-row">
+        <td class="photo-cell">
+          {% if it.raw_product and it.raw_product.image_path %}
+            <img src="{{ url_for('uploaded_file', filename=it.raw_product.image_path) }}" alt="{{ it.marketplace_title or it.name }}">
+          {% elif it.main_image_path %}
+            <img src="{{ url_for('uploaded_file', filename=it.main_image_path) }}" alt="{{ it.marketplace_title or it.name }}">
+          {% else %}
+            <span class="photo-placeholder">📦</span>
+          {% endif %}
+        </td>
+        <td class="product-cell">
+          <strong>{{ it.marketplace_title or it.name }}</strong><br>
+          <small>#{{ it.id }}</small>
+        </td>
+        <td class="state-cell">
+          <span class="badge badge-{{ it.status }}">{{ badges.get(it.status, '?') }}</span>
+        </td>
+        <td class="price-cell">{{ '%.2f'|format(it.buy_price) }} €</td>
+        <td class="price-cell">{{ '%.2f'|format(it.sell_price) }} €</td>
+        <td class="actions-cell">
+          {% if it.status == 'draft' %}
+            <a href="{{ url_for('inventory.publish', stock_item_id=it.id, status=current_status) }}" class="btn-sm btn-publish">✔</a>
+          {% elif it.status == 'available' %}
+            <a href="{{ url_for('sales.add', stock_item_id=it.id) }}" class="btn-sm btn-sell">Vendre</a>
+          {% elif it.status == 'sold' and it.sale %}
+            <a href="{{ url_for('sales.cancel', sale_id=it.sale.id) }}" class="btn-sm btn-return" onclick="return confirm('Annuler la vente ?');">Retour</a>
+          {% endif %}
+          <a href="{{ url_for('inventory.edit_stock', stock_item_id=it.id, status=current_status) }}" class="btn-sm btn-edit">✏️</a>
+          <a href="#" class="btn-sm btn-delete" onclick="return confirm('Supprimer cet article ?');">🗑️</a>
+        </td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+
+<style>
+  .stock-header {
+    display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 2rem;
+  }
+  .subtitle { margin: 0.5rem 0 0 0; color: var(--text-muted); font-size: 0.9rem; }
+  .btn-green { background: #16a34a; color: white; padding: 0.6rem 1.2rem; border-radius: 8px; text-decoration: none; font-weight: 600; }
+  .btn-green:hover { background: #15803d; }
+
+  .stock-controls {
+    display: flex; gap: 1rem; align-items: center; margin-bottom: 1.5rem;
+  }
+  .search-box { flex: 1; }
+  .search-input {
+    width: 100%; padding: 0.7rem 1rem; border: 1px solid var(--border); border-radius: 6px;
+    font-size: 0.95rem; background: var(--card-bg); color: var(--text-main);
+  }
+  .filter-select {
+    padding: 0.7rem 1rem; border: 1px solid var(--border); border-radius: 6px;
+    background: var(--card-bg); color: var(--text-main); font-size: 0.95rem;
+  }
+  .btn-primary { background: #3b82f6; color: white; padding: 0.7rem 1.5rem; border: none; border-radius: 6px; cursor: pointer; font-weight: 600; }
+  .btn-primary:hover { background: #2563eb; }
+
+  .stock-table-container {
+    overflow-x: auto; border: 1px solid var(--border); border-radius: 8px;
+    background: var(--card-bg);
+  }
+  .stock-table {
+    width: 100%; border-collapse: collapse; font-size: 0.95rem;
+  }
+  .stock-table thead {
+    background: #f3f4f6; border-bottom: 2px solid var(--border);
+  }
+  .stock-table th {
+    padding: 1rem; text-align: left; font-weight: 700; color: var(--text-main);
+  }
+  .stock-table td {
+    padding: 1rem; border-bottom: 1px solid var(--border); vertical-align: middle;
+  }
+  .stock-row:hover { background: rgba(59, 130, 246, 0.05); }
+
+  .photo-cell { width: 100px; }
+  .photo-cell img {
+    width: 90px; height: 90px; object-fit: cover; border-radius: 6px;
+  }
+  .photo-placeholder { font-size: 1.8rem; opacity: 0.4; }
+
+  .product-cell { min-width: 250px; }
+  .product-cell strong { display: block; margin-bottom: 0.2rem; }
+  .product-cell small { color: var(--text-muted); }
+
+  .state-cell { width: 80px; }
+  .badge {
+    display: inline-block; padding: 0.3rem 0.8rem; border-radius: 20px; font-weight: 700;
+    font-size: 0.85rem; text-align: center; min-width: 40px;
+  }
+  .badge-draft { background: #d1d5db; color: #374151; }
+  .badge-available { background: #06b6d4; color: white; }
+  .badge-sold { background: #ef4444; color: white; }
+  .badge-archived { background: #9ca3af; color: white; }
+
+  .price-cell { text-align: right; font-weight: 600; }
+
+  .actions-cell {
+    display: flex; gap: 0.5rem; justify-content: flex-end;
+  }
+  .btn-sm {
+    padding: 0.4rem 0.8rem; font-size: 0.8rem; border: none; border-radius: 4px;
+    text-decoration: none; cursor: pointer; display: inline-block; font-weight: 600;
+  }
+  .btn-sell { background: #16a34a; color: white; }
+  .btn-sell:hover { background: #15803d; }
+  .btn-edit { background: #8b5cf6; color: white; }
+  .btn-edit:hover { background: #7c3aed; }
+  .btn-delete { background: #ef4444; color: white; }
+  .btn-delete:hover { background: #dc2626; }
+  .btn-publish { background: #10b981; color: white; }
+  .btn-return { background: #f87171; color: white; }
+</style>
+
+  {% if pagination.pages > 1 %}
+  <div class="pagination" style="margin-top: 2rem;">
+    {% if pagination.has_prev %}
+      <a href="{{ url_for('inventory.stock', page=pagination.prev_num, status=current_status) }}">&laquo; Précédent</a>
+    {% endif %}
+    <span>Page {{ pagination.page }} / {{ pagination.pages }}</span>
+    {% if pagination.has_next %}
+      <a href="{{ url_for('inventory.stock', page=pagination.next_num, status=current_status) }}">Suivant &raquo;</a>
+    {% endif %}
+  </div>
+  {% endif %}
 
 {% else %}
 <p class="muted">Aucun article pour ce filtre.</p>

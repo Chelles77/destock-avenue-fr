@@ -8,7 +8,7 @@
 
 from flask_wtf import FlaskForm
 from wtforms import (
-    StringField, FloatField, IntegerField, BooleanField, TextAreaField, SubmitField,
+    StringField, FloatField, IntegerField, BooleanField, TextAreaField, DateField, SubmitField,
 )
 from wtforms.validators import DataRequired, Optional, NumberRange, Length
 
@@ -31,10 +31,12 @@ class LotInspectionForm(FlaskForm):
 class PurchaseLotForm(FlaskForm):
     lot_number = StringField("Numero de lot", validators=[DataRequired(), Length(max=80)])
 
+    purchase_date = DateField("Date d'achat", validators=[Optional()])
     estimated_retail_total = FloatField("Prix neuf total affiche (EUR)",
                                         validators=[DataRequired(), NumberRange(min=0)])
     quantity = IntegerField("Nombre de pieces", default=1,
                             validators=[DataRequired(), NumberRange(min=1)])
+    pallet_count = IntegerField("Nombre de palettes", validators=[Optional(), NumberRange(min=0)])
     bid_price = FloatField("Prix d'enchere (EUR)",
                            validators=[DataRequired(), NumberRange(min=0)])
     auction_fee_percent = FloatField("Frais d'encheres (%)", default=5.0,

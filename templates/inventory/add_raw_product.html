@@ -1,13 +1,19 @@
 {% extends "base.html" %}
-{% block title %}Ajouter un produit brut - ReventePro V4{% endblock %}
+{% block title %}{{ 'Modifier' if edit_mode else 'Ajouter' }} un produit brut - ReventePro V4{% endblock %}
 
 {% block content %}
 <div class="page-head">
-  <h1>Ajouter un produit brut</h1>
+  <h1>{{ 'Modifier le produit brut' if edit_mode else 'Ajouter un produit brut' }}</h1>
   <a class="btn" href="{{ url_for('inventory.raw_products') }}">Retour</a>
 </div>
 
-<form method="post" class="form" novalidate>
+{% if edit_mode and raw.image_path %}
+<div class="preview">
+  <img src="{{ url_for('uploaded_file', filename=raw.image_path) }}" alt="{{ raw.name }}" class="preview-img">
+</div>
+{% endif %}
+
+<form method="post" class="form" novalidate enctype="multipart/form-data">
   {{ form.hidden_tag() }}  {# jeton CSRF #}
 
   <div class="field">
@@ -29,6 +35,18 @@
   </div>
 
   <div class="field">
+    {{ form.estimated_resale_value.label }}
+    {{ form.estimated_resale_value(class="input", type="number", step="0.01") }}
+    {% for e in form.estimated_resale_value.errors %}<span class="error">{{ e }}</span>{% endfor %}
+  </div>
+
+  <div class="field">
+    {{ form.description.label }}
+    {{ form.description(class="input", rows="4") }}
+    {% for e in form.description.errors %}<span class="error">{{ e }}</span>{% endfor %}
+  </div>
+
+  <div class="field">
     {{ form.quantity.label }}
     {{ form.quantity(class="input", type="number") }}
     {% for e in form.quantity.errors %}<span class="error">{{ e }}</span>{% endfor %}
@@ -38,6 +56,16 @@
     {{ form.purchase_lot_id.label }}
     {{ form.purchase_lot_id(class="input") }}
     {% for e in form.purchase_lot_id.errors %}<span class="error">{{ e }}</span>{% endfor %}
+    <small class="muted">Le lot n'existe pas encore ?
+      <a href="{{ url_for('purchases.add') }}">Creer un nouveau lot</a>
+      (date d'achat, prix d'enchere, frais, palettes...), puis reviens ici l'ajouter.
+    </small>
+  </div>
+
+  <div class="field">
+    {{ form.image.label }}
+    {{ form.image(class="input") }}
+    {% for e in form.image.errors %}<span class="error">{{ e }}</span>{% endfor %}
   </div>
 
   {{ form.submit(class="btn btn-primary") }}

@@ -1,0 +1,203 @@
+{% extends "base.html" %}
+{% block title %}Analytique - ReventePro V4{% endblock %}
+
+{% block content %}
+<div class="analytics-header">
+  <h1>📊 Analytique & Statistiques</h1>
+  <p class="subtitle">Vue d'ensemble de votre activité de revente</p>
+</div>
+
+<!-- Stats Boxes -->
+<div class="stats-grid">
+  <div class="stat-box">
+    <div class="stat-value">{{ total_sales }}</div>
+    <div class="stat-label">Ventes Totales</div>
+    <div class="stat-sub">articles vendus</div>
+  </div>
+
+  <div class="stat-box highlight-green">
+    <div class="stat-value">{{ total_revenue | round(2) }} €</div>
+    <div class="stat-label">Chiffre d'Affaires</div>
+    <div class="stat-sub">montant brut</div>
+  </div>
+
+  <div class="stat-box highlight-blue">
+    <div class="stat-value">{{ total_profit | round(2) }} €</div>
+    <div class="stat-label">Profit Net</div>
+    <div class="stat-sub">{{ margin_percent }}% de marge</div>
+  </div>
+
+  <div class="stat-box">
+    <div class="stat-value">{{ avg_profit }} €</div>
+    <div class="stat-label">Profit Moyen</div>
+    <div class="stat-sub">par article vendu</div>
+  </div>
+
+  <div class="stat-box">
+    <div class="stat-value">{{ active_stocks }}</div>
+    <div class="stat-label">Stock Actif</div>
+    <div class="stat-sub">prêt à vendre</div>
+  </div>
+
+  <div class="stat-box">
+    <div class="stat-value">{{ total_fees | round(2) }} €</div>
+    <div class="stat-label">Frais Totaux</div>
+    <div class="stat-sub">commissions + port</div>
+  </div>
+</div>
+
+<!-- Charts -->
+<div class="charts-section">
+  <div class="chart-container">
+    <h3>Ventes par Mois (12 derniers mois)</h3>
+    <canvas id="salesChart"></canvas>
+  </div>
+
+  <div class="chart-container">
+    <h3>Répartition par Plateforme</h3>
+    <canvas id="platformChart"></canvas>
+  </div>
+</div>
+
+<style>
+  .analytics-header {
+    margin-bottom: 2rem;
+  }
+  .analytics-header h1 {
+    margin: 0 0 0.5rem 0;
+    font-size: 2rem;
+  }
+  .subtitle {
+    margin: 0;
+    color: var(--text-muted);
+  }
+
+  .stats-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 1.5rem;
+    margin-bottom: 3rem;
+  }
+
+  .stat-box {
+    background: var(--card-bg);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 1.5rem;
+    text-align: center;
+    box-shadow: var(--shadow);
+  }
+
+  .stat-box.highlight-green {
+    border-left: 4px solid #16a34a;
+  }
+
+  .stat-box.highlight-blue {
+    border-left: 4px solid #3b82f6;
+  }
+
+  .stat-value {
+    font-size: 2rem;
+    font-weight: 700;
+    color: var(--primary);
+    margin-bottom: 0.5rem;
+  }
+
+  .stat-label {
+    font-weight: 600;
+    color: var(--text-main);
+    margin-bottom: 0.3rem;
+  }
+
+  .stat-sub {
+    font-size: 0.85rem;
+    color: var(--text-muted);
+  }
+
+  .charts-section {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+    gap: 2rem;
+  }
+
+  .chart-container {
+    background: var(--card-bg);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 2rem;
+    box-shadow: var(--shadow);
+  }
+
+  .chart-container h3 {
+    margin: 0 0 1.5rem 0;
+    font-size: 1.1rem;
+  }
+
+  .chart-container canvas {
+    max-height: 300px;
+  }
+</style>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<script>
+  // Graphique Ventes par Mois
+  const monthsData = {{ months_data | tojson }};
+  const ctxSales = document.getElementById('salesChart').getContext('2d');
+  new Chart(ctxSales, {
+    type: 'line',
+    data: {
+      labels: monthsData.months,
+      datasets: [{
+        label: 'Ventes',
+        data: monthsData.data,
+        borderColor: '#3b82f6',
+        backgroundColor: 'rgba(59, 130, 246, 0.1)',
+        borderWidth: 2,
+        fill: true,
+        tension: 0.4,
+        pointRadius: 5,
+        pointBackgroundColor: '#3b82f6'
+      }]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: true,
+      plugins: {
+        legend: { display: false }
+      },
+      scales: {
+        y: {
+          beginAtZero: true,
+          ticks: { stepSize: 1 }
+        }
+      }
+    }
+  });
+
+  // Graphique Plateforme
+  const platformData = {{ platform_data | tojson }};
+  const ctxPlatform = document.getElementById('platformChart').getContext('2d');
+  const colors = ['#FF6B6B', '#4ECDC4', '#45B7D1', '#FFA07A', '#98D8C8'];
+  new Chart(ctxPlatform, {
+    type: 'doughnut',
+    data: {
+      labels: platformData.platforms,
+      datasets: [{
+        data: platformData.counts,
+        backgroundColor: colors.slice(0, platformData.platforms.length),
+        borderColor: '#1f2937',
+        borderWidth: 2
+      }]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: true,
+      plugins: {
+        legend: {
+          position: 'bottom'
+        }
+      }
+    }
+  });
+</script>
+{% endblock %}

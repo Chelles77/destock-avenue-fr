@@ -29,10 +29,6 @@ class RegistrationForm(FlaskForm):
         "Confirmer le mot de passe",
         validators=[DataRequired(), EqualTo("password", message="Les mots de passe different.")],
     )
-    admin_password = PasswordField(
-        "Mot de passe admin",
-        validators=[DataRequired(message="Mot de passe admin requis pour l'inscription")],
-    )
     submit = SubmitField("Creer le compte")
 
     def validate_email(self, field):

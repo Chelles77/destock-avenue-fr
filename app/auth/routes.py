@@ -27,21 +27,7 @@ def register():
 
     form = RegistrationForm()
     if form.validate_on_submit():
-        admin_password = form.admin_password.data
-
-        # Vérifier le mot de passe admin
-        # 1. Chercher un admin existant pour vérifier son mot de passe
         admin = User.query.filter_by(is_admin=True).first()
-
-        if admin:
-            # Il existe un admin : vérifier son mot de passe
-            if not admin.check_password(admin_password):
-                flash("❌ Mot de passe admin incorrect", "danger")
-                return render_template("auth/register.html", form=form)
-        else:
-            # Premier admin : utiliser le mot de passe fourni comme maître
-            # On stocke ce mot de passe pour le premier admin
-            pass
 
         # Créer le nouvel utilisateur
         user = User(

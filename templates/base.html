@@ -20,6 +20,7 @@
         <a href="{{ url_for('finance.index') }}">Finance</a>
         <a href="{{ url_for('social_charges.index') }}">URSSAF/Impôts</a>
         <a href="{{ url_for('analytics.index') }}">Analytique</a>
+        <a href="http://localhost:3001/publish.html" class="ecommerce-btn">📤 Ecommerce</a>
         <span class="nav-user">👤 {{ current_user.username or current_user.email }}</span>
         <a href="{{ url_for('auth.logout') }}">Deconnexion</a>
       {% else %}
@@ -39,6 +40,8 @@
     .navbar a { color:#d1d5db; text-decoration:none; font-size:.95rem; transition: color 0.2s; }
     .navbar a:hover { color:#fff; }
     .navbar a.active { color:#818cf8; font-weight:700; }
+    .navbar a.ecommerce-btn { color: #4ade80; font-weight: 600; background: #064e3b; padding: 0.5rem 0.75rem; border-radius: 0.375rem; }
+    .navbar a.ecommerce-btn:hover { background: #0d5e46; color: #86efac; }
     .navbar .nav-user { color:#9ca3af; font-size:.85rem; }
   </style>
 

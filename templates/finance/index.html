@@ -1,0 +1,198 @@
+{% extends "base.html" %}
+{% block title %}Gestion Financière - ReventePro V4{% endblock %}
+
+{% block content %}
+<div class="finance-header">
+  <div>
+    <h1>💰 Gestion Financière & Trésorerie</h1>
+    <p class="subtitle">Suivi indépendant des flux de cash (Entrées / Sorties)</p>
+  </div>
+</div>
+
+<!-- Stats Boxes -->
+<div class="finance-stats">
+  <div class="stat-box stat-green">
+    <div class="stat-label">TOTAL ENTRÉES</div>
+    <div class="stat-value">{{ total_revenue | round(2) }} €</div>
+    <div class="stat-sub">Fonds propres, ventes, etc.</div>
+  </div>
+
+  <div class="stat-box stat-red">
+    <div class="stat-label">TOTAL SORTIES</div>
+    <div class="stat-value">{{ total_expenses | round(2) }} €</div>
+    <div class="stat-sub">Gasoil, péages, achats, etc.</div>
+  </div>
+
+  <div class="stat-box stat-blue">
+    <div class="stat-label">TRÉSORERIE ACTUELLE</div>
+    <div class="stat-value">{{ treasury | round(2) }} €</div>
+    <div class="stat-sub">Solde net disponible</div>
+  </div>
+</div>
+
+<!-- Filtres et Formulaire Ajout -->
+<div class="finance-controls">
+  <div style="display: flex; gap: 1rem; margin-bottom: 1.5rem;">
+    <select class="filter-select">
+      <option>Tous les types</option>
+      <option value="entree">ENTRÉE</option>
+      <option value="sortie">SORTIE</option>
+    </select>
+    <select class="filter-select">
+      <option>Toutes les catégories</option>
+    </select>
+    <input type="text" placeholder="Recherche libre..." class="search-input" style="flex: 1;">
+    <button class="btn btn-primary">Filtrer</button>
+  </div>
+
+  <div class="form-box">
+    <h3>+ Nouvelle Transaction</h3>
+    <form method="post" action="{{ url_for('finance.add_expense') }}" class="finance-form">
+      {{ form.hidden_tag() }}
+
+      <div class="form-row">
+        <div class="form-group">
+          <label>Type de mouvement</label>
+          <select name="type" class="form-control">
+            <option value="sortie">SORTIE (Dépense)</option>
+            <option value="entree">ENTRÉE (Revenu)</option>
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label>Catégorie</label>
+          {{ form.category(class="form-control", placeholder="Choisir ou taper...") }}
+        </div>
+
+        <div class="form-group">
+          <label>Montant (€)</label>
+          {{ form.amount(class="form-control", placeholder="0.00") }}
+        </div>
+
+        <div class="form-group">
+          <label>Date</label>
+          <input type="date" name="date" class="form-control">
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label>Description / Notes</label>
+        {{ form.description(class="form-control", rows="2", placeholder="Détails optionnels...") }}
+      </div>
+
+      <div class="form-actions">
+        <button type="submit" class="btn btn-primary">Enregistrer</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- Historique des Mouvements -->
+<div class="transactions-history">
+  <h3>Historique des Mouvements</h3>
+  {% if transactions %}
+  <table class="transactions-table">
+    <thead>
+      <tr>
+        <th>Date</th>
+        <th>Type</th>
+        <th>Catégorie</th>
+        <th>Détail</th>
+        <th>Description</th>
+        <th>Montant</th>
+        <th>Actions</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for t in transactions %}
+      <tr>
+        <td>{{ t.date.strftime('%Y-%m-%d') if t.date else '-' }}</td>
+        <td>
+          <span class="badge {{ 'badge-green' if t.type == 'ENTRÉE' else 'badge-red' }}">
+            {{ t.type }}
+          </span>
+        </td>
+        <td>{{ t.category }}</td>
+        <td>-</td>
+        <td>{{ t.description or '-' }}</td>
+        <td class="amount-cell {{ 'amount-green' if t.type == 'ENTRÉE' else 'amount-red' }}">
+          {{ t.amount | round(2) }} €
+        </td>
+        <td>
+          <a href="#" class="btn-sm btn-edit">✏️</a>
+          <a href="#" class="btn-sm btn-delete">🗑️</a>
+        </td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+  {% else %}
+  <p class="muted">Aucun mouvement enregistré.</p>
+  {% endif %}
+</div>
+
+<style>
+  .finance-header { margin-bottom: 2rem; }
+  .finance-header h1 { margin: 0; }
+  .subtitle { color: var(--text-muted); margin: 0.5rem 0 0 0; }
+
+  .finance-stats {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 1.5rem;
+    margin-bottom: 3rem;
+  }
+
+  .stat-box {
+    border-left: 5px solid;
+    background: var(--card-bg);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 1.5rem;
+    box-shadow: var(--shadow);
+  }
+
+  .stat-box.stat-green { border-left-color: #16a34a; }
+  .stat-box.stat-red { border-left-color: #ef4444; }
+  .stat-box.stat-blue { border-left-color: #3b82f6; }
+
+  .stat-label { font-size: 0.85rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; }
+  .stat-value { font-size: 2rem; font-weight: 700; color: var(--text-main); margin: 0.5rem 0; }
+  .stat-sub { font-size: 0.8rem; color: var(--text-muted); }
+
+  .finance-controls { margin-bottom: 2rem; }
+  .filter-select { padding: 0.7rem; border: 1px solid var(--border); border-radius: 6px; background: var(--card-bg); color: var(--text-main); }
+  .search-input { padding: 0.7rem; border: 1px solid var(--border); border-radius: 6px; background: var(--card-bg); color: var(--text-main); }
+
+  .form-box { background: var(--card-bg); border: 1px solid var(--border); border-radius: 8px; padding: 2rem; }
+  .form-box h3 { margin: 0 0 1rem 0; }
+
+  .finance-form { }
+  .form-row { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 1rem; margin-bottom: 1rem; }
+  .form-group { display: flex; flex-direction: column; }
+  .form-group label { font-weight: 600; margin-bottom: 0.3rem; font-size: 0.9rem; }
+  .form-control { padding: 0.6rem; border: 1px solid var(--border); border-radius: 6px; background: var(--card-bg); color: var(--text-main); }
+  .form-actions { display: flex; gap: 1rem; margin-top: 1rem; }
+
+  .transactions-history { margin-top: 2rem; }
+  .transactions-history h3 { margin: 0 0 1rem 0; }
+
+  .transactions-table { width: 100%; border-collapse: collapse; background: var(--card-bg); }
+  .transactions-table thead { background: #f3f4f6; border-bottom: 2px solid var(--border); }
+  .transactions-table th { padding: 1rem; text-align: left; font-weight: 700; }
+  .transactions-table td { padding: 0.8rem 1rem; border-bottom: 1px solid var(--border); }
+  .transactions-table tr:hover { background: rgba(59, 130, 246, 0.05); }
+
+  .amount-cell { font-weight: 600; text-align: right; }
+  .amount-green { color: #16a34a; }
+  .amount-red { color: #ef4444; }
+
+  .badge { display: inline-block; padding: 0.3rem 0.8rem; border-radius: 20px; font-size: 0.85rem; font-weight: 700; }
+  .badge-green { background: #dcfce7; color: #166534; }
+  .badge-red { background: #fee2e2; color: #991b1b; }
+
+  .btn-sm { padding: 0.4rem 0.8rem; border: none; border-radius: 4px; text-decoration: none; cursor: pointer; font-size: 0.8rem; }
+  .btn-edit { background: #8b5cf6; color: white; }
+  .btn-delete { background: #ef4444; color: white; }
+</style>
+{% endblock %}

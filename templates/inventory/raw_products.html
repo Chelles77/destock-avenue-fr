@@ -3,51 +3,148 @@
 
 {% block content %}
 <div class="page-head">
-  <h1>Produits bruts</h1>
-  <a class="btn btn-primary" href="{{ url_for('inventory.add_raw_product') }}">+ Ajouter</a>
+  <h1>📦 Produits Bruts</h1>
+  <a class="btn btn-primary" href="{{ url_for('inventory.add_raw_product') }}">+ Ajouter un produit</a>
 </div>
 
+<div class="kpi-grid">
+  <div class="kpi-card kpi-cyan">
+    <div class="kpi-head"><span class="kpi-label">Total articles bruts</span><span class="kpi-icon">📦</span></div>
+    <div class="kpi-value">{{ total_pieces }}</div>
+  </div>
+  <div class="kpi-card kpi-green">
+    <div class="kpi-head"><span class="kpi-label">Valeur neuf estimee</span><span class="kpi-icon">🏷️</span></div>
+    <div class="kpi-value">{{ '%.2f'|format(total_new_value) }} EUR</div>
+  </div>
+  <div class="kpi-card kpi-purple">
+    <div class="kpi-head"><span class="kpi-label">Valeur revente estimee</span><span class="kpi-icon">💶</span></div>
+    <div class="kpi-value">{{ '%.2f'|format(total_resale_value) }} EUR</div>
+  </div>
+  <div class="kpi-card kpi-orange">
+    <div class="kpi-head"><span class="kpi-label">Cout reel investi</span><span class="kpi-icon">🧾</span></div>
+    <div class="kpi-value">{{ '%.2f'|format(total_real_cost) }} EUR</div>
+    <div class="kpi-sub">Prorata du lot</div>
+  </div>
+  <div class="kpi-card {{ 'kpi-green' if total_potential_profit >= 0 else 'kpi-red' }}">
+    <div class="kpi-head"><span class="kpi-label">Marge potentielle</span><span class="kpi-icon">📈</span></div>
+    <div class="kpi-value">{{ '%.2f'|format(total_potential_profit) }} EUR</div>
+  </div>
+</div>
+
+<form method="get" class="filters">
+  <input type="text" name="q" value="{{ q or '' }}" class="input"
+         placeholder="Rechercher par nom, numero ou lot (ex: A2Z50741)..." style="min-width:320px;">
+  <button type="submit" class="btn btn-primary">Filtrer</button>
+  {% if q %}<a class="btn" href="{{ url_for('inventory.raw_products') }}">Reinitialiser</a>{% endif %}
+</form>
+
 {% if items %}
-<table class="table">
-  <thead>
-    <tr>
-      <th>Nom</th>
-      <th>Fournisseur</th>
-      <th>Prix coutant</th>
-      <th>Qte</th>
-      <th>Lot</th>
-      <th>Ajoute le</th>
-      <th></th>
-    </tr>
-  </thead>
-  <tbody>
-    {% for p in items %}
-    <tr>
-      <td>{{ p.name }}</td>
-      <td>{{ p.supplier or '-' }}</td>
-      <td>{{ '%.2f'|format(p.cost_price) }} EUR</td>
-      <td>{{ p.quantity }}</td>
-      <td>{{ p.purchase_lot.name if p.purchase_lot else '-' }}</td>
-      <td>{{ p.date_added.strftime('%d/%m/%Y') }}</td>
-      <td><a class="btn btn-small" href="{{ url_for('inventory.prepare', raw_product_id=p.id) }}">Preparer</a></td>
-    </tr>
-    {% endfor %}
-  </tbody>
-</table>
+<p class="muted">{{ pagination.total }} produit(s){% if q %} pour "{{ q }}"{% endif %}</p>
+
+<div class="products-grid">
+  {% for p in items %}
+  <div class="product-card">
+    <a class="product-card-link" href="{{ url_for('inventory.prepare', raw_product_id=p.id) }}" title="{{ p.name }}">
+      <div class="product-photo">
+        {% if p.image_path %}
+          <img src="{{ url_for('uploaded_file', filename=p.image_path) }}" alt="{{ p.name }}">
+        {% else %}
+          <span class="product-photo-placeholder">📦</span>
+        {% endif %}
+        <span class="product-tag">BRUT</span>
+      </div>
+      <div class="product-body">
+        <h3 class="product-name">{{ p.name }}</h3>
+        <div class="product-ref muted">#{{ p.id }} · Lot : {{ p.purchase_lot.lot_number if p.purchase_lot else '-' }}</div>
+        <div class="product-price-row">
+          <span class="muted">Neuf : {{ '%.2f'|format(p.cost_price) }} EUR</span>
+          <strong class="product-price">{{ '%.2f'|format(p.estimated_resale_value) }} EUR</strong>
+        </div>
+      </div>
+    </a>
+    <div class="product-cta">
+      <a class="btn-stock" href="{{ url_for('inventory.prepare', raw_product_id=p.id) }}">✔ Stock</a>
+    </div>
+    <div class="product-actions">
+      <a class="btn btn-small" href="{{ url_for('inventory.edit_raw_product', raw_product_id=p.id) }}">✏️ Modifier</a>
+      <form method="post" action="{{ url_for('inventory.delete_raw_product', raw_product_id=p.id) }}"
+            onsubmit="return confirm('Supprimer ce produit brut ?');">
+        <button type="submit" class="btn btn-small btn-danger">🗑️ Supprimer</button>
+      </form>
+    </div>
+  </div>
+  {% endfor %}
+</div>
+
+<style>
+  .products-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+    gap: 1rem;
+    max-height: 78vh;
+    overflow-y: auto;
+    padding-right: 0.5rem;
+  }
+  .product-card {
+    background: var(--card-bg); border: 1px solid var(--border); border-radius: 12px;
+    overflow: hidden; display: flex; flex-direction: column; box-shadow: var(--shadow);
+    transition: border-color 0.2s, transform 0.15s;
+  }
+  .product-card:hover { border-color: var(--primary); transform: translateY(-2px); }
+  .product-card-link { display: flex; flex-direction: column; text-decoration: none; color: var(--text-main); }
+  .product-photo {
+    position: relative; width: 100%; aspect-ratio: 1 / 1; background: #161b26;
+    display: flex; align-items: center; justify-content: center; overflow: hidden;
+  }
+  .product-photo img { width: 100%; height: 100%; object-fit: cover; }
+  .product-photo-placeholder { font-size: 2rem; opacity: 0.4; }
+  .product-tag {
+    position: absolute; top: 8px; right: 8px; background: #fbbf24; color: #1e1b0f;
+    font-size: 0.65rem; font-weight: 800; padding: 0.15rem 0.55rem; border-radius: 6px;
+    letter-spacing: 0.03em;
+  }
+  .product-body { padding: 0.85rem; display: flex; flex-direction: column; gap: 0.3rem; }
+  .product-name {
+    font-size: 0.9rem; margin: 0; line-height: 1.3; font-weight: 700;
+    display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;
+    min-height: 2.3em;
+  }
+  .product-ref { font-size: 0.72rem; }
+  .product-price-row { display: flex; justify-content: space-between; align-items: baseline; margin-top: 0.35rem; font-size: 0.8rem; }
+  .product-price { font-size: 1.15rem; color: var(--primary); }
+  .product-cta { padding: 0 0.85rem; }
+  .btn-stock {
+    display: block; width: 100%; text-align: center; background: #16a34a; color: #fff;
+    padding: 0.5rem; border-radius: 8px; font-weight: 700; font-size: 0.85rem;
+    text-decoration: none; box-sizing: border-box;
+  }
+  .btn-stock:hover { background: #15803d; }
+  .product-actions { display: flex; gap: 0.5rem; padding: 0.6rem 0.85rem 0.85rem; }
+  .product-actions form { flex: 1; min-width: 0; margin: 0; display: flex; }
+  .product-actions a,
+  .product-actions button {
+    flex: 1; min-width: 0; text-align: center; text-decoration: none;
+    font: inherit; font-size: 0.72rem; margin: 0; box-sizing: border-box; cursor: pointer;
+    height: 30px; padding: 0 0.3rem; display: flex; align-items: center; justify-content: center;
+    white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+  }
+
+  @media (max-width: 560px) { .products-grid { grid-template-columns: repeat(2, 1fr); } }
+</style>
 
 {% if pagination.pages > 1 %}
 <div class="pagination">
   {% if pagination.has_prev %}
-    <a href="{{ url_for('inventory.raw_products', page=pagination.prev_num) }}">&laquo; Precedent</a>
+    <a href="{{ url_for('inventory.raw_products', page=pagination.prev_num, q=q) }}">&laquo; Precedent</a>
   {% endif %}
   <span>Page {{ pagination.page }} / {{ pagination.pages }}</span>
   {% if pagination.has_next %}
-    <a href="{{ url_for('inventory.raw_products', page=pagination.next_num) }}">Suivant &raquo;</a>
+    <a href="{{ url_for('inventory.raw_products', page=pagination.next_num, q=q) }}">Suivant &raquo;</a>
   {% endif %}
 </div>
 {% endif %}
 
 {% else %}
-<p class="muted">Aucun produit brut. Commencez par en ajouter un.</p>
+<p class="muted">{% if q %}Aucun produit ne correspond a "{{ q }}".{% else %}Aucun produit brut. Commencez par en ajouter un.{% endif %}</p>
 {% endif %}
 {% endblock %}

@@ -24,18 +24,38 @@ CONDITION_CHOICES = [
     ("Correct", "Correct"),
 ]
 
+PACKAGING_CHOICES = [
+    ("Boite d'origine scellee", "Boite d'origine scellee"),
+    ("Boite d'origine ouverte", "Boite d'origine ouverte"),
+    ("Boite abimee", "Boite abimee"),
+    ("Sans boite", "Sans boite"),
+]
+
+PLATFORM_CHOICES = [
+    ("", "-- A definir --"),
+    ("Vinted", "Vinted"),
+    ("Leboncoin", "Leboncoin"),
+    ("eBay", "eBay"),
+    ("Autre", "Autre"),
+]
+
 
 class StockItemForm(FlaskForm):
     """Fiche de preparation d'un article, orientee vente marketplace."""
 
     name = StringField("Nom interne", validators=[DataRequired(), Length(max=150)])
-    condition = SelectField("Etat", choices=CONDITION_CHOICES, validators=[Optional()])
+    condition = SelectField("Etat du produit (verifie physiquement)",
+                            choices=CONDITION_CHOICES, validators=[Optional()])
+    packaging_condition = SelectField("Etat de l'emballage",
+                                      choices=PACKAGING_CHOICES, validators=[Optional()])
+    target_platform = SelectField("Ou le vendre", choices=PLATFORM_CHOICES,
+                                  validators=[Optional()])
     status = SelectField("Statut", choices=STATUS_CHOICES, default="draft",
                          validators=[DataRequired()])
 
     buy_price = FloatField("Prix d'achat impute (EUR)",
                            validators=[Optional(), NumberRange(min=0)])
-    sell_price = FloatField("Prix de vente vise (EUR)",
+    sell_price = FloatField("Prix de vente decide (EUR)",
                             validators=[Optional(), NumberRange(min=0)])
 
     description = TextAreaField("Notes internes", validators=[Optional()])

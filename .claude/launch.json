@@ -2,11 +2,11 @@
   "version": "0.0.1",
   "configurations": [
     {
-      "name": "ReventePro",
-      "runtimeExecutable": "python",
-      "runtimeArgs": ["-m", "flask", "run", "--port=${PORT}"],
-      "port": 5000,
-      "autoPort": true
+      "name": "ReventePro Backend",
+      "runtimeExecutable": "node",
+      "runtimeArgs": ["server.js"],
+      "cwd": "${workspaceFolder}/backend",
+      "port": 3000
     }
   ]
 }

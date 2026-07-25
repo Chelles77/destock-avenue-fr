@@ -363,12 +363,26 @@
             }
         }
 
-        // Vérifier si l'utilisateur est déjà connecté
+        // Initialiser l'admin par défaut
         window.addEventListener('load', () => {
+            const admins = JSON.parse(localStorage.getItem('azulan_admins')) || {};
+            if (!admins['admin']) {
+                admins['admin'] = {
+                    name: 'Administrateur',
+                    role: 'admin',
+                    password: 'admin123'
+                };
+                localStorage.setItem('azulan_admins', JSON.stringify(admins));
+            }
+
             const currentUser = localStorage.getItem('azulan_currentUser');
             if (currentUser) {
-                // Rediriger vers la page d'accueil s'il est déjà connecté
-                window.location.href = 'index.html';
+                const user = JSON.parse(currentUser);
+                if (user.role === 'admin' || user.role === 'collaborator') {
+                    window.location.href = 'admin-dashboard.html';
+                } else {
+                    window.location.href = 'index.html';
+                }
             }
         });
     </script>

@@ -3,16 +3,18 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Admin - Destock Avenue FR</title>
+    <title>Admin AZULAN - Tout Gérer</title>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
         :root {
-            --primary: #e41e24;
-            --dark: #1a1a1a;
-            --gray-light: #f8f8f8;
-            --gray-border: #e5e5e5;
-            --text: #2a2a2a;
+            --primary: #1a365d;
+            --accent: #ff6b35;
+            --gray-light: #f5f5f5;
+            --gray-border: #ddd;
+            --text: #000;
+            --error: #d32f2f;
+            --success: #388e3c;
         }
         body {
             font-family: 'Inter', sans-serif;
@@ -20,13 +22,82 @@
             color: var(--text);
         }
         .container {
-            max-width: 1200px;
-            margin: 0 auto;
+            display: flex;
+            min-height: 100vh;
+        }
+        .sidebar {
+            width: 250px;
+            background: var(--primary);
+            color: white;
+            padding: 2rem 1rem;
+            position: fixed;
+            height: 100vh;
+            overflow-y: auto;
+        }
+        .sidebar h2 {
+            margin-bottom: 2rem;
+            font-size: 1.3rem;
+        }
+        .sidebar-menu {
+            list-style: none;
+        }
+        .sidebar-menu li {
+            margin-bottom: 1rem;
+        }
+        .sidebar-menu button {
+            width: 100%;
+            background: none;
+            border: none;
+            color: white;
+            padding: 0.75rem 1rem;
+            text-align: left;
+            cursor: pointer;
+            border-radius: 4px;
+            transition: all 0.2s;
+            font-size: 0.95rem;
+        }
+        .sidebar-menu button:hover,
+        .sidebar-menu button.active {
+            background: var(--accent);
+        }
+        .sidebar-logout {
+            margin-top: 2rem;
+            padding-top: 2rem;
+            border-top: 1px solid rgba(255,255,255,0.2);
+        }
+        .main-content {
+            margin-left: 250px;
+            flex: 1;
             padding: 2rem;
         }
-        h1 {
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
             margin-bottom: 2rem;
+            background: white;
+            padding: 1.5rem;
+            border-radius: 8px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+        h1 {
+            font-size: 1.8rem;
             color: var(--primary);
+        }
+        h2 {
+            margin-top: 2rem;
+            margin-bottom: 1rem;
+            color: var(--primary);
+        }
+        .section {
+            display: none;
+            background: white;
+            padding: 2rem;
+            border-radius: 8px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+        .section.active {
+            display: block;
         }
         .form-group {
             display: grid;
@@ -39,6 +110,12 @@
             border: 1px solid var(--gray-border);
             border-radius: 4px;
             font-size: 0.95rem;
+            font-family: 'Inter', sans-serif;
+        }
+        input:focus, select:focus {
+            outline: none;
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(26, 54, 93, 0.1);
         }
         button {
             padding: 0.75rem 1.5rem;
@@ -51,8 +128,9 @@
             transition: all 0.2s;
         }
         button:hover {
-            opacity: 0.9;
-            transform: translateY(-1px);
+            background: var(--accent);
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(255, 107, 53, 0.3);
         }
         button.delete {
             background: #dc3545;
@@ -66,6 +144,7 @@
             border-radius: 6px;
             overflow: hidden;
             box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+            margin-top: 1rem;
         }
         th {
             background: var(--primary);
@@ -88,13 +167,13 @@
             display: none;
         }
         .message.success {
-            background: #d4edda;
-            color: #155724;
+            background: #e8f5e9;
+            color: var(--success);
             display: block;
         }
         .message.error {
-            background: #f8d7da;
-            color: #721c24;
+            background: #ffebee;
+            color: var(--error);
             display: block;
         }
         .stats {
@@ -111,7 +190,7 @@
         }
         .stat-box h3 {
             font-size: 0.9rem;
-            color: var(--text-light);
+            color: #666;
             margin-bottom: 0.5rem;
         }
         .stat-box .number {
@@ -119,73 +198,217 @@
             font-weight: 700;
             color: var(--primary);
         }
+        .btn {
+            padding: 0.5rem 1rem;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-weight: 600;
+            font-size: 0.85rem;
+            transition: all 0.2s;
+            margin-bottom: 1rem;
+        }
+        .btn-primary {
+            background: var(--primary);
+            color: white;
+        }
+        .btn-primary:hover {
+            background: var(--accent);
+        }
+        .btn-danger {
+            background: var(--error);
+            color: white;
+        }
+        .btn-danger:hover {
+            opacity: 0.8;
+        }
     </style>
 </head>
 <body>
     <div class="container">
-        <h1>🔴 Admin - Gestion des Produits</h1>
-
-        <div id="message" class="message"></div>
-
-        <div class="stats">
-            <div class="stat-box">
-                <h3>Total Produits</h3>
-                <div class="number" id="totalProducts">0</div>
-            </div>
-            <div class="stat-box">
-                <h3>Catégories</h3>
-                <div class="number" id="totalCategories">0</div>
+        <!-- SIDEBAR -->
+        <div class="sidebar">
+            <h2>🔐 ADMIN</h2>
+            <ul class="sidebar-menu">
+                <li><button class="menu-btn active" onclick="showSection('dashboard')">📊 Dashboard</button></li>
+                <li><button class="menu-btn" onclick="showSection('products')">📦 Produits</button></li>
+                <li><button class="menu-btn" onclick="showSection('clients')">👥 Clients</button></li>
+                <li><button class="menu-btn" onclick="showSection('passwords')">🔑 Mots de Passe</button></li>
+            </ul>
+            <div class="sidebar-logout">
+                <button class="btn btn-primary" style="width: 100%; margin-bottom: 1rem;" onclick="window.open('index.html', '_blank')">🏠 Aller au site</button>
+                <button class="btn btn-danger" style="width: 100%;" onclick="logout()">Déconnexion</button>
             </div>
         </div>
 
-        <h2 style="margin-top: 2rem; margin-bottom: 1rem;">Ajouter/Modifier un Produit</h2>
-
-        <form id="productForm">
-            <div class="form-group">
-                <input type="text" id="id" placeholder="ID (auto-généré)" readonly style="background: #f0f0f0; cursor: not-allowed;">
-                <select id="category" required>
-                    <option value="">Sélectionne catégorie</option>
-                    <option value="aspirateurs">Aspirateurs Robots</option>
-                    <option value="cafetiere">Cafetières</option>
-                    <option value="airfryer">Air Fryers</option>
-                    <option value="robots">Robots Cuiseur</option>
-                    <option value="electromenager">Électroménager</option>
-                    <option value="autres">Autres</option>
-                </select>
-                <input type="text" id="name" placeholder="Nom du produit" required>
-                <input type="number" id="price" placeholder="Prix actuel €" step="0.01" required>
-                <input type="number" id="original_price" placeholder="Prix original €" step="0.01" required>
-                <input type="text" id="discount" placeholder="Réduction (ex: -42%)">
-                <input type="number" id="stock" placeholder="Stock" value="0" required>
-                <div style="display: flex; gap: 0.5rem;">
-                    <input type="file" id="imageFile" accept="image/*" style="flex: 1;">
-                    <button type="button" onclick="uploadImage()" style="background: #6c757d;">📸 Upload</button>
-                </div>
-                <input type="text" id="image" placeholder="URL image (auto-rempli)" readonly style="background: #f0f0f0; grid-column: 1 / -1;">
-                <button type="submit" style="grid-column: 1 / -1;">✅ Ajouter/Modifier</button>
+        <!-- MAIN CONTENT -->
+        <div class="main-content">
+            <div class="header">
+                <h1>AZULAN Admin - Gestion Complète</h1>
             </div>
-        </form>
 
-        <h2 style="margin-top: 2rem; margin-bottom: 1rem;">Tous les Produits</h2>
-        <table>
-            <thead>
-                <tr>
-                    <th>ID</th>
-                    <th>Catégorie</th>
-                    <th>Nom</th>
-                    <th>Prix</th>
-                    <th>Stock</th>
-                    <th>Actions</th>
-                </tr>
-            </thead>
-            <tbody id="productsList"></tbody>
-        </table>
+            <!-- DASHBOARD -->
+            <div id="dashboard" class="section active">
+                <h2>Dashboard</h2>
+                <div class="stats">
+                    <div class="stat-box">
+                        <h3>Total Produits</h3>
+                        <div class="number" id="totalProducts">0</div>
+                    </div>
+                    <div class="stat-box">
+                        <h3>Catégories</h3>
+                        <div class="number" id="totalCategories">0</div>
+                    </div>
+                    <div class="stat-box">
+                        <h3>Total Clients</h3>
+                        <div class="number" id="totalClients">0</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- PRODUITS -->
+            <div id="products" class="section">
+                <h2>Gestion des Produits</h2>
+                <div id="productMessage" class="message"></div>
+
+                <h3 style="margin-top: 1.5rem; margin-bottom: 1rem;">Ajouter/Modifier un Produit</h3>
+                <form id="productForm">
+                    <div class="form-group">
+                        <input type="text" id="id" placeholder="ID (auto-généré)" readonly style="background: #f0f0f0; cursor: not-allowed;">
+                        <select id="category" required>
+                            <option value="">Sélectionne catégorie</option>
+                            <option value="aspirateurs">Aspirateurs Robots</option>
+                            <option value="cafetiere">Cafetières</option>
+                            <option value="airfryer">Air Fryers</option>
+                            <option value="robots">Robots Cuiseur</option>
+                            <option value="electromenager">Électroménager</option>
+                            <option value="autres">Autres</option>
+                        </select>
+                        <input type="text" id="name" placeholder="Nom du produit" required>
+                        <input type="number" id="price" placeholder="Prix actuel €" step="0.01" required>
+                        <input type="number" id="original_price" placeholder="Prix original €" step="0.01" required>
+                        <input type="text" id="discount" placeholder="Réduction (ex: -42%)">
+                        <input type="number" id="stock" placeholder="Stock" value="0" required>
+                        <div style="display: flex; gap: 0.5rem;">
+                            <input type="file" id="imageFile" accept="image/*" style="flex: 1;">
+                            <button type="button" onclick="uploadImage()" style="background: #6c757d;">📸 Upload</button>
+                        </div>
+                        <input type="text" id="image" placeholder="URL image (auto-rempli)" readonly style="background: #f0f0f0; grid-column: 1 / -1;">
+                        <button type="submit" style="grid-column: 1 / -1;">✅ Ajouter/Modifier Produit</button>
+                    </div>
+                </form>
+
+                <h3 style="margin-top: 2rem; margin-bottom: 1rem;">Tous les Produits</h3>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>Catégorie</th>
+                            <th>Nom</th>
+                            <th>Prix</th>
+                            <th>Stock</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="productsList"></tbody>
+                </table>
+            </div>
+
+            <!-- CLIENTS -->
+            <div id="clients" class="section">
+                <h2>Informations Clients</h2>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Email</th>
+                            <th>Prénom</th>
+                            <th>Nom</th>
+                            <th>Téléphone</th>
+                            <th>Newsletter</th>
+                            <th>Date d'inscription</th>
+                        </tr>
+                    </thead>
+                    <tbody id="clientsTable"></tbody>
+                </table>
+            </div>
+
+            <!-- MOTS DE PASSE -->
+            <div id="passwords" class="section">
+                <h2>Gestion des Mots de Passe</h2>
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 2rem;">
+                    <!-- CHANGER MON MOT DE PASSE ADMIN -->
+                    <div>
+                        <h3 style="margin-bottom: 1rem; color: var(--primary);">Mon Mot de Passe (Admin)</h3>
+                        <div class="form-group" style="grid-template-columns: 1fr;">
+                            <label>Ancien mot de passe</label>
+                            <div style="position: relative;">
+                                <input type="password" id="oldPassword" class="password-input">
+                                <button class="eye-btn" onclick="togglePassword('oldPassword')">👁️</button>
+                            </div>
+                        </div>
+                        <div class="form-group" style="grid-template-columns: 1fr;">
+                            <label>Nouveau mot de passe</label>
+                            <div style="position: relative;">
+                                <input type="password" id="newPassword" class="password-input">
+                                <button class="eye-btn" onclick="togglePassword('newPassword')">👁️</button>
+                            </div>
+                        </div>
+                        <div class="form-group" style="grid-template-columns: 1fr;">
+                            <label>Confirmer mot de passe</label>
+                            <div style="position: relative;">
+                                <input type="password" id="confirmPassword" class="password-input">
+                                <button class="eye-btn" onclick="togglePassword('confirmPassword')">👁️</button>
+                            </div>
+                        </div>
+                        <button class="btn btn-primary" onclick="changePassword()">Changer</button>
+                    </div>
+
+                    <!-- GÉRER MOTS DE PASSE COLLABORATEURS -->
+                    <div>
+                        <h3 style="margin-bottom: 1rem; color: var(--primary);">Collaborateurs & Admins</h3>
+                        <table style="font-size: 0.9rem;">
+                            <thead>
+                                <tr>
+                                    <th>Email</th>
+                                    <th>Rôle</th>
+                                </tr>
+                            </thead>
+                            <tbody id="usersPasswordTable"></tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
     </div>
 
     <script>
         const API = 'http://localhost:3002/api/products';
 
-        // Auto-générer l'ID à partir du nom
+        // NAVIGATION
+        function showSection(sectionId) {
+            document.querySelectorAll('.section').forEach(el => el.classList.remove('active'));
+            document.querySelectorAll('.menu-btn').forEach(el => el.classList.remove('active'));
+            document.getElementById(sectionId).classList.add('active');
+            event.target.classList.add('active');
+
+            if (sectionId === 'products') loadProducts();
+            if (sectionId === 'clients') loadClients();
+            if (sectionId === 'passwords') loadUsersPasswordList();
+        }
+
+        // LOGOUT
+        function logout() {
+            localStorage.removeItem('azulan_currentUser');
+            window.location.href = 'connexion.html';
+        }
+
+        // PASSWORD VISIBILITY
+        function togglePassword(id) {
+            const input = document.getElementById(id);
+            input.type = input.type === 'password' ? 'text' : 'password';
+        }
+
+        // AUTO-GÉNÉRER ID
         document.getElementById('name').addEventListener('input', (e) => {
             const name = e.target.value;
             const id = name
@@ -200,10 +423,10 @@
             document.getElementById('id').value = id;
         });
 
-        // Upload image
+        // UPLOAD IMAGE
         async function uploadImage() {
             const file = document.getElementById('imageFile').files[0];
-            if (!file) return showMessage('Sélectionne une image', 'error');
+            if (!file) return showMessage('Sélectionne une image', 'error', 'productMessage');
 
             const formData = new FormData();
             formData.append('image', file);
@@ -217,15 +440,16 @@
                 if (res.ok) {
                     const data = await res.json();
                     document.getElementById('image').value = data.url;
-                    showMessage('✅ Image uploadée!', 'success');
+                    showMessage('✅ Image uploadée!', 'success', 'productMessage');
                 } else {
-                    showMessage('❌ Erreur upload', 'error');
+                    showMessage('❌ Erreur upload', 'error', 'productMessage');
                 }
             } catch (err) {
-                showMessage('Erreur: ' + err.message, 'error');
+                showMessage('Erreur: ' + err.message, 'error', 'productMessage');
             }
         }
 
+        // LOAD PRODUCTS
         async function loadProducts() {
             try {
                 const res = await fetch(API);
@@ -256,10 +480,11 @@
                 document.getElementById('totalProducts').textContent = products.length;
                 document.getElementById('totalCategories').textContent = categories.size;
             } catch (err) {
-                showMessage('Erreur: ' + err.message, 'error');
+                showMessage('Erreur chargement: ' + err.message, 'error', 'productMessage');
             }
         }
 
+        // PRODUCT FORM
         document.getElementById('productForm').addEventListener('submit', async (e) => {
             e.preventDefault();
 
@@ -282,39 +507,127 @@
                 });
 
                 if (res.ok) {
-                    showMessage('✅ Produit ajouté avec succès!', 'success');
+                    showMessage('✅ Produit ajouté avec succès!', 'success', 'productMessage');
                     document.getElementById('productForm').reset();
                     loadProducts();
                 } else {
-                    showMessage('❌ Erreur: ' + (await res.json()).error, 'error');
+                    showMessage('❌ Erreur: ' + (await res.json()).error, 'error', 'productMessage');
                 }
             } catch (err) {
-                showMessage('Erreur réseau: ' + err.message, 'error');
+                showMessage('Erreur réseau: ' + err.message, 'error', 'productMessage');
             }
         });
 
+        // DELETE PRODUCT
         async function deleteProduct(id) {
             if (!confirm('Supprimer ce produit ?')) return;
 
             try {
                 const res = await fetch(`${API}/${id}`, { method: 'DELETE' });
                 if (res.ok) {
-                    showMessage('✅ Produit supprimé!', 'success');
+                    showMessage('✅ Produit supprimé!', 'success', 'productMessage');
                     loadProducts();
                 }
             } catch (err) {
-                showMessage('Erreur: ' + err.message, 'error');
+                showMessage('Erreur: ' + err.message, 'error', 'productMessage');
             }
         }
 
-        function showMessage(msg, type) {
-            const el = document.getElementById('message');
-            el.textContent = msg;
-            el.className = `message ${type}`;
-            setTimeout(() => el.className = 'message', 5000);
+        // LOAD CLIENTS
+        function loadClients() {
+            const users = JSON.parse(localStorage.getItem('azulan_users')) || {};
+            const tbody = document.getElementById('clientsTable');
+            tbody.innerHTML = '';
+
+            if (Object.keys(users).length === 0) {
+                tbody.innerHTML = '<tr><td colspan="6" style="text-align: center; color: #999;">Aucun client inscrit</td></tr>';
+                document.getElementById('totalClients').textContent = '0';
+                return;
+            }
+
+            Object.entries(users).forEach(([email, user]) => {
+                const row = `
+                    <tr>
+                        <td>${email}</td>
+                        <td>${user.firstName || '-'}</td>
+                        <td>${user.lastName || '-'}</td>
+                        <td>${user.phone || '-'}</td>
+                        <td>${user.newsletter ? '✅ Oui' : '❌ Non'}</td>
+                        <td>${new Date(user.createdAt).toLocaleDateString('fr-FR') || '-'}</td>
+                    </tr>
+                `;
+                tbody.innerHTML += row;
+            });
+
+            document.getElementById('totalClients').textContent = Object.keys(users).length;
         }
 
-        loadProducts();
+        // CHANGE PASSWORD
+        function changePassword() {
+            const old = document.getElementById('oldPassword').value;
+            const newPwd = document.getElementById('newPassword').value;
+            const confirm = document.getElementById('confirmPassword').value;
+
+            if (!old || !newPwd || !confirm) {
+                alert('Remplis tous les champs');
+                return;
+            }
+
+            if (old !== 'admin123') {
+                alert('❌ Ancien mot de passe incorrect');
+                return;
+            }
+
+            if (newPwd !== confirm) {
+                alert('❌ Les mots de passe ne correspondent pas');
+                return;
+            }
+
+            const admins = JSON.parse(localStorage.getItem('azulan_admins')) || {};
+            admins['admin'].password = newPwd;
+            localStorage.setItem('azulan_admins', JSON.stringify(admins));
+
+            alert('✅ Mot de passe changé avec succès!');
+            document.getElementById('oldPassword').value = '';
+            document.getElementById('newPassword').value = '';
+            document.getElementById('confirmPassword').value = '';
+        }
+
+        // LOAD USERS PASSWORD LIST
+        function loadUsersPasswordList() {
+            const admins = JSON.parse(localStorage.getItem('azulan_admins')) || {};
+            const tbody = document.getElementById('usersPasswordTable');
+            tbody.innerHTML = '';
+
+            Object.entries(admins).forEach(([email, user]) => {
+                const row = `
+                    <tr>
+                        <td>${email}</td>
+                        <td><span class="badge ${user.role === 'admin' ? 'badge-admin' : 'badge-collab'}">${user.role === 'admin' ? 'Admin' : 'Collaborateur'}</span></td>
+                    </tr>
+                `;
+                tbody.innerHTML += row;
+            });
+        }
+
+        // MESSAGE
+        function showMessage(msg, type, elementId = 'productMessage') {
+            const el = document.getElementById(elementId);
+            if (el) {
+                el.textContent = msg;
+                el.className = `message ${type}`;
+                setTimeout(() => el.className = 'message', 5000);
+            }
+        }
+
+        // INIT
+        window.addEventListener('load', () => {
+            const currentUser = JSON.parse(localStorage.getItem('azulan_currentUser') || '{}');
+            if (!currentUser.role || (currentUser.role !== 'admin' && currentUser.role !== 'collaborator')) {
+                window.location.href = 'connexion.html';
+            }
+            loadProducts();
+        });
     </script>
 </body>
 </html>

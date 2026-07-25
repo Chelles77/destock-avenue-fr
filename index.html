@@ -638,23 +638,29 @@
         loadData();
     </script>
 
-    <!-- ADMIN BADGE -->
-    <a href="admin-dashboard.html" class="admin-badge" title="Accès Admin" onclick="checkAdminAccess(event)">
+    <!-- ADMIN BADGE (VISIBLE SEULEMENT POUR ADMIN/COLLAB) -->
+    <a href="admin-dashboard.html" class="admin-badge" id="adminBadge" style="display: none;" title="Accès Admin">
         🔐 Admin
     </a>
 
     <script>
-        function checkAdminAccess(e) {
+        function updateAdminBadge() {
             const user = JSON.parse(localStorage.getItem('azulan_currentUser') || '{}');
-            // Si c'est un client, redirige vers connexion.html
-            if (user.role === 'client') {
-                e.preventDefault();
-                // Logout d'abord
-                localStorage.removeItem('azulan_currentUser');
-                window.location.href = 'connexion.html';
+            const badge = document.getElementById('adminBadge');
+
+            // Affiche le badge SEULEMENT si c'est admin ou collaborateur
+            if (user.role === 'admin' || user.role === 'collaborator') {
+                badge.style.display = 'flex';
+            } else {
+                badge.style.display = 'none';
             }
-            // Si c'est un admin, laisse aller au dashboard
         }
+
+        // Vérifier au chargement
+        updateAdminBadge();
+
+        // Vérifier aussi quand la page redevient active
+        window.addEventListener('focus', updateAdminBadge);
     </script>
 </body>
 </html>

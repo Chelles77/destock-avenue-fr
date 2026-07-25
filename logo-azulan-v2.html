@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Logo AZULAN</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            background: #000;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            font-family: Arial, sans-serif;
+        }
+        .logo-container {
+            text-align: center;
+        }
+        svg {
+            max-width: 100%;
+            height: auto;
+        }
+    </style>
+</head>
+<body>
+    <div class="logo-container">
+        <svg viewBox="0 0 1200 600" xmlns="http://www.w3.org/2000/svg" width="1200" height="600">
+            <!-- Flèche courbée haut - courbe fluide et épaisse -->
+            <path d="M 100 220 C 350 100, 700 120, 850 200" stroke="#ff3333" stroke-width="50" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+
+            <!-- Pointe flèche haut -->
+            <polygon points="870,185 950,200 840,250" fill="#ff3333"/>
+
+            <!-- Flèche courbée bas - courbe fluide inverse -->
+            <path d="M 850 400 C 700 480, 350 500, 100 380" stroke="#ff3333" stroke-width="50" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+
+            <!-- Pointe flèche bas -->
+            <polygon points="80,365 10,380 130,330" fill="#ff3333"/>
+
+            <!-- Texte AZULAN - blanc/gris italique -->
+            <text x="480" y="330" font-family="Arial, sans-serif" font-size="180" font-weight="900" text-anchor="middle" fill="#ffffff" font-style="italic">AZULAN</text>
+
+            <!-- Texte .FR - orange italique -->
+            <text x="800" y="330" font-family="Arial, sans-serif" font-size="160" font-weight="900" text-anchor="start" fill="#ff6b35" font-style="italic">.FR</text>
+
+            <!-- Tagline en blanc italique -->
+            <text x="600" y="480" font-family="Arial, sans-serif" font-size="40" font-weight="bold" text-anchor="middle" fill="#ffffff" letter-spacing="2" font-style="italic">LES MEILLEURES AFFAIRES</text>
+        </svg>
+    </div>
+</body>
+</html>

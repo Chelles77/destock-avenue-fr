@@ -1,0 +1,281 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Charte du Site - Destock Avenue</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        :root {
+            --primary: #1a365d;
+            --accent: #d4af37;
+            --dark: #000;
+            --light: #fff;
+            --gray-light: #f0f0f0;
+            --gray-border: #ddd;
+            --text: #000;
+            --text-light: #666;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background: var(--gray-light);
+            color: var(--text);
+            line-height: 1.6;
+        }
+
+        header {
+            background: white;
+            border-bottom: 1px solid var(--gray-border);
+            padding: 1rem 0;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        .header-top {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 0 1.5rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 2rem;
+        }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            height: 60px;
+        }
+
+        .logo img {
+            height: 100%;
+            width: auto;
+            max-width: 250px;
+        }
+
+        .header-actions {
+            display: flex;
+            gap: 1.5rem;
+            align-items: center;
+        }
+
+        .header-link {
+            text-decoration: none;
+            color: var(--text);
+            font-weight: 500;
+            font-size: 0.95rem;
+        }
+
+        nav {
+            background: var(--dark);
+            padding: 0;
+        }
+
+        .nav-container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 0 1.5rem;
+            display: flex;
+            gap: 2rem;
+        }
+
+        nav a {
+            color: white;
+            text-decoration: none;
+            padding: 1rem 0;
+            font-weight: 500;
+            font-size: 0.95rem;
+        }
+
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+            padding: 3rem 1.5rem;
+            background: white;
+            border-radius: 4px;
+            margin-top: 2rem;
+            margin-bottom: 2rem;
+            border: 1px solid var(--gray-border);
+        }
+
+        h1 {
+            font-size: 2rem;
+            margin-bottom: 2rem;
+            color: var(--dark);
+        }
+
+        h2 {
+            font-size: 1.3rem;
+            margin-top: 2rem;
+            margin-bottom: 1rem;
+            color: var(--primary);
+            border-bottom: 2px solid var(--primary);
+            padding-bottom: 0.5rem;
+        }
+
+        p {
+            margin-bottom: 1rem;
+            color: var(--text-light);
+        }
+
+        ul {
+            margin-left: 1.5rem;
+            margin-bottom: 1rem;
+        }
+
+        li {
+            margin-bottom: 0.5rem;
+            color: var(--text-light);
+        }
+
+        .section {
+            margin-bottom: 2rem;
+        }
+
+        .highlight {
+            background: #f0f7ff;
+            padding: 1rem;
+            border-left: 4px solid #0066cc;
+            border-radius: 4px;
+            margin: 1.5rem 0;
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                padding: 1.5rem;
+            }
+
+            h1 {
+                font-size: 1.5rem;
+            }
+
+            h2 {
+                font-size: 1.1rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <div class="header-top">
+            <div class="logo"><img src="logo-azulan.png" alt="AZULAN"></div>
+            <div class="header-actions">
+                <a href="index.html" class="header-link">← Retour à l'accueil</a>
+            </div>
+        </div>
+    </header>
+
+    <nav>
+        <div class="nav-container">
+            <a href="index.html">Accueil</a>
+            <a href="charte.html">Charte du Site</a>
+        </div>
+    </nav>
+
+    <div class="container">
+        <h1>📋 Charte du Site - Destock Avenue FR</h1>
+
+        <div class="section">
+            <h2>À Propos de Destock Avenue</h2>
+            <p>
+                Destock Avenue FR est une plateforme de vente en ligne spécialisée dans la commercialisation de produits électroménagers et appareils de qualité
+                à des tarifs compétitifs. Nous proposons des articles sélectionnés pour leur fonctionnalité et leur rapport qualité-prix.
+            </p>
+        </div>
+
+        <div class="section">
+            <h2>✅ Protection de l'Acheteur</h2>
+            <ul>
+                <li><strong>Livraison gratuite</strong> : Tous nos produits sont expédiés sans frais de port</li>
+                <li><strong>Paiement sécurisé</strong> : Vos transactions sont protégées par un système de paiement sécurisé</li>
+                <li><strong>Droit de rétractation</strong> : Vous avez 14 jours pour retourner un produit non conforme</li>
+                <li><strong>Conformité légale</strong> : Tous nos produits respectent les normes de sécurité en vigueur</li>
+            </ul>
+        </div>
+
+        <div class="section">
+            <h2>📦 Condition des Produits</h2>
+            <p>
+                Nos produits proviennent de différentes sources (retours clients, fins de stocks, etc.).
+                Chaque article est testé et vérifié avant expédition pour garantir son bon fonctionnement.
+            </p>
+            <div class="highlight">
+                <strong>Important :</strong> Les produits vendus sur Destock Avenue peuvent être des articles reconditionnés,
+                des retours client, ou des fins de stock. Ils sont cependant garantis fonctionnels et conformes.
+            </div>
+        </div>
+
+        <div class="section">
+            <h2>🛡️ Garantie</h2>
+            <p>
+                Tous nos produits bénéficient de la protection légale de consommateur. En cas de problème ou de
+                dysfonctionnement après votre achat, nous nous engageons à vous aider dans les meilleurs délais.
+            </p>
+            <ul>
+                <li><strong>Garantie légale :</strong> 2 ans pour tout défaut de conformité (droit du consommateur)</li>
+                <li><strong>Support client :</strong> Notre équipe est disponible pour répondre à vos questions</li>
+                <li><strong>Retour produit :</strong> Possibilité de retour dans un délai raisonnable en cas de problème</li>
+            </ul>
+        </div>
+
+        <div class="section">
+            <h2>📋 Conditions de Retour</h2>
+            <ul>
+                <li>Délai de retour : 14 jours à partir de la réception du produit</li>
+                <li>Produit en bon état d'usage général</li>
+                <li>Frais de retour : À charge de l'acheteur pour les retours sans défaut</li>
+                <li>Défaut constaté : Retour gratuit et remboursement complet</li>
+            </ul>
+        </div>
+
+        <div class="section">
+            <h2>💳 Paiement et Tarifs</h2>
+            <ul>
+                <li>Les prix affichés incluent la TVA applicable</li>
+                <li>Livraison gratuite sur tout le site</li>
+                <li>Réductions progressives : Plus vous achetez, plus vous économisez</li>
+                <li>Les prix sont susceptibles d'être modifiés sans préavis</li>
+            </ul>
+        </div>
+
+        <div class="section">
+            <h2>🔒 Données Personnelles</h2>
+            <p>
+                Vos données personnelles sont traitées avec confidentialité. Elles ne seront jamais cédées à des tiers
+                sans votre consentement. Nous utilisons vos informations uniquement pour traiter votre commande et
+                vous contacter au sujet de votre achat.
+            </p>
+        </div>
+
+        <div class="section">
+            <h2>📞 Service Client</h2>
+            <p>
+                Vous avez des questions ? Notre équipe est là pour vous aider :
+            </p>
+            <ul>
+                <li><strong>Email :</strong> contact@destockavenue.fr</li>
+                <li><strong>Temps de réponse :</strong> 24-48 heures ouvrables</li>
+                <li><strong>Support :</strong> Disponible du lundi au vendredi, 9h-17h</li>
+            </ul>
+        </div>
+
+        <div class="section">
+            <h2>⚖️ Conditions Générales</h2>
+            <p>
+                En accédant à Destock Avenue FR et en effectuant un achat, vous acceptez les conditions générales de vente
+                et cette charte du site. Nous nous réservons le droit de modifier ces conditions à tout moment.
+                Les modifications prendront effet immédiatement après publication.
+            </p>
+        </div>
+
+        <div class="highlight">
+            <strong>Dernière mise à jour :</strong> 2026-07-25<br>
+            Si vous avez des questions, n'hésitez pas à nous contacter via notre formulaire de contact.
+        </div>
+    </div>
+</body>
+</html>

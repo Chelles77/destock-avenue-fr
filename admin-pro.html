@@ -1,0 +1,1209 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin - Destock Avenue</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        :root {
+            --primary: #1a365d;
+            --accent: #d4af37;
+            --dark: #000;
+            --light: #fff;
+            --gray-light: #f0f0f0;
+            --gray-border: #ddd;
+            --text: #000;
+            --text-light: #666;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background: var(--gray-light);
+            color: var(--text);
+        }
+
+        header {
+            background: white;
+            border-bottom: 1px solid var(--gray-border);
+            padding: 1rem 0;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        .header-top {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 0 1.5rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 2rem;
+        }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            height: 60px;
+        }
+
+        .logo img {
+            height: 100%;
+            width: auto;
+            max-width: 250px;
+        }
+
+        .user-info {
+            display: flex;
+            gap: 1.5rem;
+            align-items: center;
+        }
+
+        .back-btn {
+            background: var(--gray-light);
+            color: var(--text);
+            border: 1px solid var(--gray-border);
+            padding: 0.6rem 1.2rem;
+            border-radius: 4px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.2s;
+            text-decoration: none;
+            display: inline-block;
+        }
+
+        .back-btn:hover {
+            background: white;
+            border-color: var(--primary);
+            color: var(--primary);
+        }
+
+        .logout-btn {
+            background: var(--primary);
+            color: white;
+            border: none;
+            padding: 0.6rem 1.2rem;
+            border-radius: 4px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: opacity 0.2s;
+        }
+
+        .logout-btn:hover {
+            opacity: 0.9;
+        }
+
+        nav {
+            background: var(--dark);
+            padding: 0;
+        }
+
+        .nav-container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 0 1.5rem;
+            display: flex;
+            gap: 2rem;
+        }
+
+        nav a {
+            color: white;
+            text-decoration: none;
+            padding: 1rem 0;
+            font-weight: 500;
+            font-size: 0.95rem;
+            border-bottom: 3px solid transparent;
+            transition: all 0.2s;
+        }
+
+        nav a:hover {
+            border-bottom-color: #ff6b35;
+            color: white;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 2rem 1.5rem;
+        }
+
+        .message {
+            padding: 1rem;
+            margin-bottom: 2rem;
+            border-radius: 4px;
+            display: none;
+            font-weight: 600;
+        }
+
+        .message.success {
+            background: #d4edda;
+            color: #155724;
+            display: block;
+        }
+
+        .message.error {
+            background: #f8d7da;
+            color: #721c24;
+            display: block;
+        }
+
+        .tabs {
+            display: flex;
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+            border-bottom: 2px solid var(--gray-border);
+        }
+
+        .tab-btn {
+            padding: 1rem 0;
+            border: none;
+            background: none;
+            cursor: pointer;
+            font-weight: 600;
+            font-size: 0.95rem;
+            color: var(--text-light);
+            border-bottom: 3px solid transparent;
+            transition: all 0.2s;
+        }
+
+        .tab-btn.active {
+            color: var(--primary);
+            border-bottom-color: var(--primary);
+        }
+
+        .tab-content {
+            display: none;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        h2 {
+            font-size: 1.5rem;
+            font-weight: 700;
+            margin-bottom: 1.5rem;
+            color: var(--text);
+        }
+
+        h3 {
+            font-size: 1.2rem;
+            font-weight: 700;
+            margin-bottom: 1rem;
+            color: var(--text);
+            margin-top: 2rem;
+        }
+
+        .form-group {
+            background: white;
+            padding: 2rem;
+            border-radius: 4px;
+            border: 1px solid var(--gray-border);
+            margin-bottom: 2rem;
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+            gap: 1rem;
+        }
+
+        input, select, textarea {
+            padding: 0.75rem;
+            border: 1px solid var(--gray-border);
+            border-radius: 4px;
+            font-size: 0.95rem;
+            font-family: 'Inter', sans-serif;
+        }
+
+        input:focus, select:focus, textarea:focus {
+            outline: none;
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(228, 30, 36, 0.1);
+        }
+
+        textarea {
+            grid-column: 1 / -1;
+            min-height: 100px;
+            resize: vertical;
+        }
+
+        .file-upload {
+            grid-column: 1 / -1;
+            border: 2px dashed var(--gray-border);
+            padding: 1.5rem;
+            border-radius: 4px;
+            background: var(--gray-light);
+            text-align: center;
+        }
+
+        .upload-btn {
+            background: var(--primary);
+            color: white;
+            padding: 0.75rem 1.5rem;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-weight: 600;
+            margin-bottom: 1rem;
+            transition: opacity 0.2s;
+        }
+
+        .upload-btn:hover {
+            opacity: 0.9;
+        }
+
+        #productImagesPreview {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(80px, 1fr));
+            gap: 0.5rem;
+            margin-top: 1rem;
+        }
+
+        .preview-img {
+            width: 80px;
+            height: 80px;
+            object-fit: cover;
+            border-radius: 4px;
+            border: 2px solid var(--primary);
+        }
+
+        .btn-submit {
+            grid-column: 1 / -1;
+            padding: 1rem;
+            background: var(--primary);
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-weight: 600;
+            font-size: 1rem;
+            transition: opacity 0.2s;
+        }
+
+        .btn-submit:hover {
+            opacity: 0.9;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            background: white;
+            border: 1px solid var(--gray-border);
+            border-radius: 4px;
+            overflow: hidden;
+            margin-top: 1rem;
+        }
+
+        th {
+            background: var(--primary);
+            color: white;
+            padding: 1rem;
+            text-align: left;
+            font-weight: 600;
+        }
+
+        td {
+            padding: 1rem;
+            border-bottom: 1px solid var(--gray-border);
+        }
+
+        tr:hover {
+            background: var(--gray-light);
+        }
+
+        .btn-action {
+            padding: 0.5rem 1rem;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-weight: 600;
+            font-size: 0.85rem;
+            margin-right: 0.5rem;
+            transition: all 0.2s;
+        }
+
+        .btn-edit {
+            background: var(--primary);
+            color: white;
+        }
+
+        .btn-edit:hover {
+            background: #ff6b35;
+            color: white;
+            transform: scale(1.05);
+        }
+
+        .btn-delete {
+            background: var(--dark);
+            color: #ff6b35;
+            border: 2px solid #ff6b35;
+        }
+
+        .btn-delete:hover {
+            background: #ff6b35;
+            color: white;
+            transform: scale(1.05);
+        }
+
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            z-index: 1001;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .modal.active {
+            display: flex;
+        }
+
+        .modal-content {
+            background: white;
+            padding: 2rem;
+            border-radius: 4px;
+            max-width: 600px;
+            width: 90%;
+            max-height: 90vh;
+            overflow-y: auto;
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1.5rem;
+        }
+
+        .modal-header h3 {
+            margin: 0;
+        }
+
+        .close-btn {
+            background: none;
+            border: none;
+            font-size: 1.5rem;
+            cursor: pointer;
+            color: var(--text-light);
+        }
+
+        .close-btn:hover {
+            color: var(--text);
+        }
+
+        @media (max-width: 768px) {
+            .form-group {
+                grid-template-columns: 1fr;
+            }
+            table {
+                font-size: 0.9rem;
+            }
+            td, th {
+                padding: 0.75rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <div class="header-top">
+            <div class="logo"><img src="logo-azulan.png" alt="AZULAN"></div>
+            <div class="user-info">
+                <a href="index.html" class="back-btn">← Retour au site</a>
+                <span id="username">👤 Connecté</span>
+                <button class="logout-btn" onclick="logout()">Déconnexion</button>
+            </div>
+        </div>
+    </header>
+
+    <nav>
+        <div class="nav-container">
+            <a href="admin-pro.html">Gestion</a>
+        </div>
+    </nav>
+
+    <div class="container">
+        <div id="message" class="message"></div>
+
+        <div class="tabs">
+            <button class="tab-btn active" onclick="showTab('produits')">📦 Produits</button>
+            <button class="tab-btn" onclick="showTab('users')">👥 Collaborateurs</button>
+        </div>
+
+        <!-- PRODUITS -->
+        <div id="produits" class="tab-content active">
+            <h2>Gestion des Produits</h2>
+
+            <div class="form-group">
+                <label style="grid-column: 1/-1; font-weight: 700; margin-top: 1rem;">Nom de la pièce</label>
+                <input type="text" id="productName" placeholder="Nom du produit" style="grid-column: 1/-1;" />
+
+                <label style="grid-column: 1/-1; font-weight: 700; margin-top: 1rem;">Catégorie</label>
+                <div style="grid-column: 1/-1; display: flex; gap: 0.5rem;">
+                    <select id="productCategory" style="flex: 1;"><option value="">Sélectionne catégorie</option></select>
+                    <button type="button" class="upload-btn" onclick="createNewCategory()" style="width: auto;">+ Nouvelle</button>
+                </div>
+
+                <label style="font-weight: 700; margin-top: 1rem;">Prix de vente €</label>
+                <input type="number" id="productPrice" placeholder="Prix actuel €" step="0.01" oninput="calculateDiscount()" />
+
+                <label style="font-weight: 700; margin-top: 1rem;">Prix du neuf €</label>
+                <input type="number" id="productOriginalPrice" placeholder="Prix original €" step="0.01" oninput="calculateDiscount()" />
+
+                <label style="font-weight: 700; margin-top: 1rem;">% automatique</label>
+                <input type="text" id="productDiscount" placeholder="Réduction (auto)" readonly style="background: var(--gray-light);" />
+
+                <label style="font-weight: 700; margin-top: 1rem;">Nombre de pièce</label>
+                <input type="number" id="productStock" placeholder="Stock" value="0" />
+
+                <label style="font-weight: 700; margin-top: 1rem;">La marque</label>
+                <input type="text" id="productBrand" placeholder="Marque" />
+
+                <label style="font-weight: 700; margin-top: 1rem;">Modèle</label>
+                <input type="text" id="productModel" placeholder="Modèle" />
+
+                <label style="font-weight: 700; margin-top: 1rem;">Garantie</label>
+                <input type="text" id="productWarranty" placeholder="Garantie" />
+
+                <label style="grid-column: 1/-1; font-weight: 700; margin-top: 1rem;">Images</label>
+                <div class="file-upload" style="grid-column: 1/-1;">
+                    <button type="button" class="upload-btn" onclick="document.getElementById('productImagesFile').click()">📸 Ajouter images (max 5)</button>
+                    <input type="file" id="productImagesFile" accept="image/*" multiple style="display: none;" onchange="handleProductImages()" />
+                    <div id="productImagesPreview"></div>
+                </div>
+
+                <label style="grid-column: 1/-1; font-weight: 700; margin-top: 1rem;">Description</label>
+                <textarea id="productDescription" placeholder="Description" style="grid-column: 1/-1;"></textarea>
+                <button class="btn-submit" onclick="addProduct()" style="grid-column: 1/-1;">✅ Ajouter Produit</button>
+            </div>
+
+            <h3>Produits</h3>
+            <table>
+                <thead><tr><th>Nom</th><th>Catégorie</th><th>Prix</th><th>Stock</th><th>Actions</th></tr></thead>
+                <tbody id="productsList"></tbody>
+            </table>
+        </div>
+
+        <!-- COLLABORATEURS -->
+        <div id="users" class="tab-content">
+            <h2>Gestion des Collaborateurs</h2>
+
+            <div class="form-group">
+                <input type="text" id="userName" placeholder="Username" />
+                <input type="password" id="userPassword" placeholder="Mot de passe" />
+                <input type="email" id="userEmail" placeholder="Email" />
+                <select id="userRole"><option value="collaborateur">Collaborateur</option><option value="admin">Admin</option></select>
+                <button class="btn-submit" onclick="addUser()">✅ Ajouter Collaborateur</button>
+            </div>
+
+            <h3>Collaborateurs</h3>
+            <table>
+                <thead><tr><th>Username</th><th>Email</th><th>Rôle</th><th>Actions</th></tr></thead>
+                <tbody id="usersList"></tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- MODALS -->
+    <div id="editProductModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>Éditer Produit</h3>
+                <button class="close-btn" onclick="closeModal('editProductModal')">✕</button>
+            </div>
+            <div class="form-group">
+                <input type="text" id="editProductId" placeholder="ID" readonly style="background: var(--gray-light); grid-column: 1/-1;" />
+                <input type="text" id="editProductName" placeholder="Nom" style="grid-column: 1/-1;" />
+                <select id="editProductCategory" style="grid-column: 1/-1;"><option value="">Catégorie</option></select>
+                <textarea id="editProductAnnonce" placeholder="📢 Annonce (texte accrocheur)" style="grid-column: 1/-1; min-height: 80px;"></textarea>
+
+                <div style="grid-column: 1/-1; border: 2px dashed var(--gray-border); padding: 1.5rem; border-radius: 4px; background: var(--gray-light); text-align: center;">
+                    <button type="button" class="upload-btn" onclick="document.getElementById('editProductImagesFile').click()">📸 Ajouter images (max 5)</button>
+                    <input type="file" id="editProductImagesFile" accept="image/*" multiple style="display: none;" onchange="uploadEditProductImages()" />
+                    <div id="editProductImagesPreview" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(80px, 1fr)); gap: 0.5rem; margin-top: 1rem;"></div>
+                </div>
+
+                <input type="number" id="editProductPrice" placeholder="Prix actuel €" step="0.01" oninput="calculateEditDiscount()" style="grid-column: 1/-1;" />
+                <input type="number" id="editProductOriginalPrice" placeholder="Prix original €" step="0.01" oninput="calculateEditDiscount()" style="grid-column: 1/-1;" />
+                <input type="text" id="editProductDiscount" placeholder="Réduction (auto)" readonly style="background: var(--gray-light); grid-column: 1/-1; cursor: not-allowed;" />
+
+                <select id="editProductReductionBadge" style="grid-column: 1/-1;">
+                    <option value="">Pas de badge</option>
+                    <option value="-10%">-10%</option>
+                    <option value="-20%">-20%</option>
+                    <option value="-30%">-30%</option>
+                    <option value="-50%">-50%</option>
+                    <option value="-70%">-70%</option>
+                    <option value="NEW">🆕 Nouveau</option>
+                    <option value="HOT">🔥 Tendance</option>
+                    <option value="TOP">⭐ Meilleur</option>
+                </select>
+
+                <input type="number" id="editProductStock" placeholder="Stock" style="grid-column: 1/-1;" />
+                <input type="text" id="editProductBrand" placeholder="Marque" style="grid-column: 1/-1;" />
+                <input type="text" id="editProductModel" placeholder="Modèle" style="grid-column: 1/-1;" />
+                <input type="text" id="editProductWarranty" placeholder="Garantie" style="grid-column: 1/-1;" />
+                <textarea id="editProductDescription" placeholder="Description (annonce)" style="grid-column: 1/-1;"></textarea>
+
+                <button class="btn-submit" onclick="saveProductEdit()" style="grid-column: 1/-1;">💾 Sauvegarder</button>
+            </div>
+        </div>
+    </div>
+
+
+    <div id="editUserModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>Éditer Collaborateur</h3>
+                <button class="close-btn" onclick="closeModal('editUserModal')">✕</button>
+            </div>
+            <div class="form-group">
+                <input type="text" id="editUserId" placeholder="ID" readonly style="background: var(--gray-light);" />
+                <input type="text" id="editUserName" placeholder="Username" />
+                <input type="email" id="editUserEmail" placeholder="Email" />
+                <select id="editUserRole"><option value="collaborateur">Collaborateur</option><option value="admin">Admin</option></select>
+                <button class="btn-submit" onclick="saveUserEdit()">💾 Sauvegarder</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const API = 'http://localhost:3002/api';
+        let currentUser = null;
+        let productImages = [];
+        let editProductImages = [];
+        let editingProductId = null;
+        let editingCategoryId = null;
+        let editingUserId = null;
+        let allProducts = [];
+        let allCategories = [];
+        let allUsers = [];
+        let categoryImageUrl = null;
+
+        function checkAuth() {
+            const token = localStorage.getItem('token');
+            const user = localStorage.getItem('user');
+            if (!token || !user) {
+                window.location.href = 'login.html';
+                return;
+            }
+            currentUser = JSON.parse(user);
+            document.getElementById('username').textContent = `👤 ${currentUser.username} (${currentUser.role})`;
+            loadData();
+        }
+
+        function showTab(tabName) {
+            document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
+            document.querySelectorAll('.tab-btn').forEach(el => el.classList.remove('active'));
+            document.getElementById(tabName).classList.add('active');
+            event.target.classList.add('active');
+        }
+
+        function showMessage(msg, type) {
+            const el = document.getElementById('message');
+            el.textContent = msg;
+            el.className = `message ${type}`;
+            setTimeout(() => el.className = 'message', 5000);
+        }
+
+        function logout() {
+            fetch(`${API}/logout`, {method: 'POST', headers: {'x-token': localStorage.getItem('token')}})
+                .then(() => {
+                    localStorage.clear();
+                    window.location.href = 'login.html';
+                });
+        }
+
+        function openModal(id) {
+            document.getElementById(id).classList.add('active');
+        }
+
+        function closeModal(id) {
+            document.getElementById(id).classList.remove('active');
+        }
+
+        async function handleProductImages() {
+            const files = document.getElementById('productImagesFile').files;
+            if (productImages.length + files.length > 5) {
+                alert('⚠️ Maximum 5 images total');
+                return;
+            }
+            const preview = document.getElementById('productImagesPreview');
+            for (let file of files) {
+                const formData = new FormData();
+                formData.append('image', file);
+                try {
+                    const res = await fetch(`${API}/upload`, {method: 'POST', body: formData});
+                    const data = await res.json();
+                    productImages.push(data.url);
+                    const thumb = document.createElement('img');
+                    thumb.src = data.url;
+                    thumb.className = 'preview-img';
+                    preview.appendChild(thumb);
+                } catch (err) {
+                    console.error('Upload error:', err);
+                }
+            }
+        }
+
+        function calculateDiscount() {
+            const price = parseFloat(document.getElementById('productPrice').value) || 0;
+            const originalPrice = parseFloat(document.getElementById('productOriginalPrice').value) || 0;
+            if (originalPrice > 0 && price < originalPrice) {
+                const discountPercent = Math.round(((originalPrice - price) / originalPrice) * 100);
+                document.getElementById('productDiscount').value = `-${discountPercent}%`;
+                generateAnnonce();
+            } else {
+                document.getElementById('productDiscount').value = '-0%';
+            }
+        }
+
+        function generateAnnonce() {
+            const brand = document.getElementById('productBrand').value || '[MARQUE]';
+            const name = document.getElementById('productName').value || '[NOM PRODUIT]';
+            const originalPrice = parseFloat(document.getElementById('productOriginalPrice').value) || '[PRIX NEUF]';
+            const price = parseFloat(document.getElementById('productPrice').value) || '[PRIX VENTE]';
+            const discount = document.getElementById('productDiscount').value || '[ÉCONOMIE %]';
+
+            const annonce = `[MARQUE] [NOM] – À Prix Cassé
+
+Profitez des mêmes performances que les grands magasins, mais payez-le jusqu'à -[ÉCONOMIE %]% moins cher ici.
+
+Pourquoi payer plus ailleurs ?
+✅ Même produit, même garantie : Vous obtenez le [MARQUE] [NOM] avec toutes ses technologies. Zéro compromis.
+✅ Fonctionnalités identiques : Puissance, performance, durabilité – tout ce que les grandes marques vous vendraient 2x plus cher.
+✅ Économie massive : Vous économisez [ÉCONOMIE €] en achetant chez nous. Notre prix d'achat en lot nous permet de vous offrir ce produit neuf, sous garantie, à un tarif imbattable.
+
+"Ne payez pas [PRIX NEUF]€ pour la même excellence. Obtenez-le à [PRIX VENTE]€ seulement."`;
+
+            document.getElementById('productAnnonce').value = annonce;
+        }
+
+        async function loadCategories() {
+            const res = await fetch(`${API}/categories`);
+            allCategories = await res.json();
+            const select = document.getElementById('productCategory');
+            const editSelect = document.getElementById('editProductCategory');
+            let html = '<option value="">Sélectionne catégorie</option>';
+            allCategories.forEach(c => {
+                html += `<option value="${c.id}">${c.name}</option>`;
+            });
+            select.innerHTML = html;
+            editSelect.innerHTML = html;
+        }
+
+        function createNewCategory() {
+            const name = prompt('Nom de la nouvelle catégorie:');
+            if (!name) return;
+            const id = name.toLowerCase().replace(/[éèê]/g, 'e').replace(/[àâ]/g, 'a').replace(/[^a-z0-9]/g, '-').replace(/-+/g, '-').replace(/^-|-$/g, '');
+            fetch(`${API}/categories`, {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json', 'x-token': localStorage.getItem('token')},
+                body: JSON.stringify({id, name, image: null, badge: null})
+            }).then(r => r.json()).then(d => {
+                if (d.success) {
+                    showMessage('✅ Catégorie créée!', 'success');
+                    loadCategories();
+                    document.getElementById('productCategory').value = id;
+                } else {
+                    showMessage('❌ Erreur: ' + d.error, 'error');
+                }
+            });
+        }
+
+        async function addProduct() {
+            const name = document.getElementById('productName').value;
+            const categoryId = document.getElementById('productCategory').value;
+            if (!name || !categoryId || productImages.length === 0) return showMessage('❌ Remplis tous les champs', 'error');
+
+            const id = 'prod-' + Date.now() + '-' + Math.random().toString(36).substr(2, 5);
+            const product = {
+                id, category: categoryId, name,
+                price: parseFloat(document.getElementById('productPrice').value),
+                original_price: parseFloat(document.getElementById('productOriginalPrice').value),
+                discount: document.getElementById('productDiscount').value,
+                stock: parseInt(document.getElementById('productStock').value),
+                image: productImages[0],
+                images: productImages,
+                brand: document.getElementById('productBrand').value,
+                model: document.getElementById('productModel').value,
+                warranty: document.getElementById('productWarranty').value,
+                annonce: document.getElementById('productAnnonce').value,
+                description: document.getElementById('productDescription').value
+            };
+
+            const res = await fetch(`${API}/products`, {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json', 'x-token': localStorage.getItem('token')},
+                body: JSON.stringify(product)
+            });
+            const data = await res.json();
+            if (data.success) {
+                showMessage('✅ Produit ajouté!', 'success');
+                document.querySelector('.form-group').reset();
+                document.getElementById('productImagesPreview').innerHTML = '';
+                productImages = [];
+                loadProducts();
+            }
+        }
+
+        async function loadProducts() {
+            const res = await fetch(`${API}/products`);
+            allProducts = await res.json();
+            const tbody = document.getElementById('productsList');
+            tbody.innerHTML = allProducts.map(p => `
+                <tr>
+                    <td>${p.name}</td>
+                    <td>${p.category}</td>
+                    <td>${p.price}€</td>
+                    <td>${p.stock}</td>
+                    <td>
+                        <button class="btn-action btn-edit" onclick="editProduct('${p.id}')">✏️ Éditer</button>
+                        <button class="btn-action btn-delete" onclick="deleteProduct('${p.id}')">🗑️ Supprimer</button>
+                    </td>
+                </tr>
+            `).join('');
+        }
+
+        function editProduct(id) {
+            try {
+                const product = allProducts.find(p => p.id === id);
+                if (!product) return;
+                editingProductId = id;
+
+                // Initialiser editProductImages correctement
+                try {
+                    if (product.images && typeof product.images === 'string') {
+                        editProductImages = JSON.parse(product.images);
+                    } else if (Array.isArray(product.images)) {
+                        editProductImages = product.images;
+                    } else if (product.image) {
+                        editProductImages = [product.image];
+                    } else {
+                        editProductImages = [];
+                    }
+                } catch (e) {
+                    editProductImages = product.image ? [product.image] : [];
+                }
+
+                document.getElementById('editProductId').value = id;
+                document.getElementById('editProductName').value = product.name;
+                document.getElementById('editProductCategory').value = product.category;
+                document.getElementById('editProductPrice').value = product.price;
+                document.getElementById('editProductOriginalPrice').value = product.original_price;
+                document.getElementById('editProductDiscount').value = product.discount || '-0%';
+                document.getElementById('editProductReductionBadge').value = product.discount || '';
+                document.getElementById('editProductStock').value = product.stock;
+                document.getElementById('editProductBrand').value = product.brand || '';
+                document.getElementById('editProductModel').value = product.model || '';
+                document.getElementById('editProductWarranty').value = product.warranty || '';
+                document.getElementById('editProductDescription').value = product.description || '';
+
+                // Pré-remplir l'annonce
+                if (!product.annonce) {
+                    const savings = product.original_price - product.price;
+                    const discountPercent = Math.round(((product.original_price - product.price) / product.original_price) * 100);
+                    const annonce = `${product.brand || 'Produit'} ${product.model || product.name} – Le Top à Prix Cassé
+
+Profitez des mêmes performances que les grands magasins, mais payez-le jusqu'à -${discountPercent}% moins cher ici.
+
+Pourquoi payer plus ailleurs ?
+✅ Même produit, même garantie : Vous obtenez le modèle haut de gamme avec toutes ses technologies. Zéro compromis.
+✅ Fonctionnalités identiques : Puissance maximale, performance – tout ce que les grandes marques vous vendraient 2x plus cher.
+✅ Économie massive : Vous économisez ${savings.toFixed(2)}€ en achetant chez nous. Notre prix d'achat en lot nous permet de vous offrir ce produit neuf, sous garantie, à un tarif imbattable.
+
+Pourquoi nous faire confiance ?
+✅ Produit neuf sous garantie officielle
+✅ Livraison gratuite et retour 30 jours
+✅ Paiement sécurisé
+✅ Des milliers de clients satisfaits
+
+"Ne payez pas ${product.original_price}€ pour la même excellence. Obtenez-le à ${product.price}€ seulement."`;
+                    document.getElementById('editProductAnnonce').value = annonce;
+                } else {
+                    document.getElementById('editProductAnnonce').value = product.annonce;
+                }
+
+                const previewDiv = document.getElementById('editProductImagesPreview');
+                previewDiv.innerHTML = '';
+                if (editProductImages && editProductImages.length > 0) {
+                    editProductImages.forEach((img, idx) => {
+                        const thumb = document.createElement('img');
+                        thumb.src = img;
+                        thumb.className = 'preview-img';
+                        previewDiv.appendChild(thumb);
+                    });
+                } else {
+                    previewDiv.innerHTML = '<div style="grid-column: 1/-1; text-align: center; color: var(--text-light);">Pas d\'image</div>';
+                }
+                openModal('editProductModal');
+            } catch (err) {
+                console.error('Erreur editProduct:', err);
+                alert('❌ Erreur: ' + err.message);
+            }
+        }
+
+        async function uploadEditProductImages() {
+            const files = document.getElementById('editProductImagesFile').files;
+            if (files.length === 0) return;
+            if (files.length > 5) {
+                alert('⚠️ Maximum 5 images');
+                return;
+            }
+            const preview = document.getElementById('editProductImagesPreview');
+            preview.innerHTML = '';
+            for (let file of files) {
+                const formData = new FormData();
+                formData.append('image', file);
+                try {
+                    const res = await fetch(`${API}/upload`, {method: 'POST', body: formData});
+                    const data = await res.json();
+                    if (data.url) {
+                        editProductImages.push(data.url);
+                        const thumb = document.createElement('img');
+                        thumb.src = data.url;
+                        thumb.className = 'preview-img';
+                        preview.appendChild(thumb);
+                    }
+                } catch (err) {
+                    console.error('Upload error:', err);
+                }
+            }
+        }
+
+        function calculateEditDiscount() {
+            const price = parseFloat(document.getElementById('editProductPrice').value) || 0;
+            const originalPrice = parseFloat(document.getElementById('editProductOriginalPrice').value) || 0;
+            if (originalPrice > 0 && price < originalPrice) {
+                const discountPercent = Math.round(((originalPrice - price) / originalPrice) * 100);
+                document.getElementById('editProductDiscount').value = `-${discountPercent}%`;
+                generateEditAnnonce();
+            } else {
+                document.getElementById('editProductDiscount').value = '-0%';
+            }
+        }
+
+        function generateEditAnnonce() {
+            const brand = document.getElementById('editProductBrand').value || '[MARQUE]';
+            const name = document.getElementById('editProductName').value || '[NOM PRODUIT]';
+            const originalPrice = parseFloat(document.getElementById('editProductOriginalPrice').value) || '[PRIX NEUF]';
+            const price = parseFloat(document.getElementById('editProductPrice').value) || '[PRIX VENTE]';
+            const discount = document.getElementById('editProductDiscount').value || '[ÉCONOMIE %]';
+
+            const annonce = `[MARQUE] [NOM] – À Prix Cassé
+
+Profitez des mêmes performances que les grands magasins, mais payez-le jusqu'à -[ÉCONOMIE %]% moins cher ici.
+
+Pourquoi payer plus ailleurs ?
+✅ Même produit, même garantie : Vous obtenez le [MARQUE] [NOM] avec toutes ses technologies. Zéro compromis.
+✅ Fonctionnalités identiques : Puissance, performance, durabilité – tout ce que les grandes marques vous vendraient 2x plus cher.
+✅ Économie massive : Vous économisez [ÉCONOMIE €] en achetant chez nous. Notre prix d'achat en lot nous permet de vous offrir ce produit neuf, sous garantie, à un tarif imbattable.
+
+"Ne payez pas [PRIX NEUF]€ pour la même excellence. Obtenez-le à [PRIX VENTE]€ seulement."`;
+
+            document.getElementById('editProductAnnonce').value = annonce;
+        }
+
+        async function saveProductEdit() {
+            const updatedProduct = {
+                name: document.getElementById('editProductName').value,
+                category: document.getElementById('editProductCategory').value,
+                price: parseFloat(document.getElementById('editProductPrice').value),
+                original_price: parseFloat(document.getElementById('editProductOriginalPrice').value),
+                discount: document.getElementById('editProductReductionBadge').value || null,
+                stock: parseInt(document.getElementById('editProductStock').value),
+                brand: document.getElementById('editProductBrand').value,
+                model: document.getElementById('editProductModel').value,
+                warranty: document.getElementById('editProductWarranty').value,
+                annonce: document.getElementById('editProductAnnonce').value,
+                description: document.getElementById('editProductDescription').value,
+                image: editProductImages[0] || (allProducts.find(p => p.id === editingProductId)?.image || null),
+                images: editProductImages.length > 0 ? editProductImages : (allProducts.find(p => p.id === editingProductId)?.images ? JSON.parse(allProducts.find(p => p.id === editingProductId).images) : null)
+            };
+            const res = await fetch(`${API}/products/${editingProductId}`, {
+                method: 'PUT',
+                headers: {'Content-Type': 'application/json', 'x-token': localStorage.getItem('token')},
+                body: JSON.stringify(updatedProduct)
+            });
+            const data = await res.json();
+            if (data.success) {
+                showMessage('✅ Produit modifié!', 'success');
+                editProductImages = [];
+                closeModal('editProductModal');
+                loadProducts();
+            } else {
+                showMessage('❌ Erreur: ' + data.error, 'error');
+            }
+        }
+
+        async function deleteProduct(id) {
+            if (!confirm('Supprimer ce produit?')) return;
+            const res = await fetch(`${API}/products/${id}`, {
+                method: 'DELETE',
+                headers: {'x-token': localStorage.getItem('token')}
+            });
+            const data = await res.json();
+            if (data.success) {
+                showMessage('✅ Produit supprimé!', 'success');
+                loadProducts();
+            }
+        }
+
+        function autoCategoryId() {
+            const name = document.getElementById('categoryName').value;
+            const id = name.toLowerCase().replace(/[éèê]/g, 'e').replace(/[àâ]/g, 'a')
+                .replace(/[ù]/g, 'u').replace(/[^a-z0-9]/g, '-').replace(/-+/g, '-').replace(/^-|-$/g, '');
+            document.getElementById('categoryId').value = id;
+        }
+
+        async function addCategory() {
+            const id = document.getElementById('categoryId').value;
+            const name = document.getElementById('categoryName').value;
+            const image = document.getElementById('categoryImage').value;
+            const badge = document.getElementById('categoryBadge').value;
+            if (!id || !name) return showMessage('❌ Remplis les champs', 'error');
+
+            const res = await fetch(`${API}/categories`, {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json', 'x-token': localStorage.getItem('token')},
+                body: JSON.stringify({id, name, image, badge})
+            });
+            const data = await res.json();
+            if (data.success) {
+                showMessage('✅ Catégorie ajoutée!', 'success');
+                document.getElementById('categoryName').value = '';
+                document.getElementById('categoryImage').value = '';
+                document.getElementById('categoryBadge').value = '';
+                document.getElementById('categoryId').value = '';
+                loadCategories();
+                loadCategoriesList();
+            }
+        }
+
+        async function loadCategoriesList() {
+            const res = await fetch(`${API}/categories`);
+            allCategories = await res.json();
+            const tbody = document.getElementById('categoriesList');
+            tbody.innerHTML = allCategories.map(c => `
+                <tr>
+                    <td>${c.name}</td>
+                    <td>${c.image ? '✅' : '—'}</td>
+                    <td>
+                        <button class="btn-action btn-edit" onclick="editCategory('${c.id}')">✏️ Éditer</button>
+                        <button class="btn-action btn-delete" onclick="deleteCategory('${c.id}')">🗑️ Supprimer</button>
+                    </td>
+                </tr>
+            `).join('');
+        }
+
+        function editCategory(id) {
+            const category = allCategories.find(c => c.id === id);
+            if (!category) return;
+            editingCategoryId = id;
+            document.getElementById('editCategoryId').value = id;
+            document.getElementById('editCategoryName').value = category.name;
+
+            const badgeSelect = document.getElementById('editCategoryBadge');
+            const customBadgeInput = document.getElementById('editCategoryCustomBadge');
+
+            if (category.badge && !['', '-10%', '-20%', '-30%', '-50%', '-70%', 'NEW', 'HOT', 'TOP'].includes(category.badge)) {
+                badgeSelect.value = 'CUSTOM';
+                customBadgeInput.value = category.badge;
+                customBadgeInput.style.display = 'block';
+            } else {
+                badgeSelect.value = category.badge || '';
+                customBadgeInput.style.display = 'none';
+            }
+
+            document.getElementById('editCategoryImagePreview').innerHTML = category.image
+                ? `<img src="${category.image}" style="max-width: 100px; max-height: 100px; border-radius: 4px;">`
+                : 'Pas d\'image';
+
+            openModal('editCategoryModal');
+        }
+
+        async function uploadCategoryImage() {
+            const file = document.getElementById('editCategoryImageFile').files[0];
+            if (!file) return;
+
+            const formData = new FormData();
+            formData.append('image', file);
+
+            try {
+                const res = await fetch(`${API}/upload`, {method: 'POST', body: formData});
+                const data = await res.json();
+                if (data.url) {
+                    categoryImageUrl = data.url;
+                    document.getElementById('editCategoryImagePreview').innerHTML =
+                        `<img src="${data.url}" style="max-width: 100px; max-height: 100px; border-radius: 4px;">`;
+                } else {
+                    showMessage('❌ Erreur upload', 'error');
+                }
+            } catch (err) {
+                showMessage('❌ Erreur: ' + err.message, 'error');
+            }
+        }
+
+        document.addEventListener('change', function(e) {
+            if (e.target.id === 'editCategoryBadge') {
+                const customInput = document.getElementById('editCategoryCustomBadge');
+                customInput.style.display = e.target.value === 'CUSTOM' ? 'block' : 'none';
+            }
+        }, true);
+
+        async function saveCategoryEdit() {
+            try {
+                const badgeSelect = document.getElementById('editCategoryBadge').value;
+                const customBadge = document.getElementById('editCategoryCustomBadge').value;
+                const badge = badgeSelect === 'CUSTOM' ? customBadge : badgeSelect;
+                const name = document.getElementById('editCategoryName').value;
+
+                if (!name) {
+                    showMessage('❌ Le nom est requis', 'error');
+                    return;
+                }
+
+                const updatedCategory = {
+                    name: name,
+                    badge: badge || null,
+                    image: categoryImageUrl || (allCategories.find(c => c.id === editingCategoryId)?.image || null)
+                };
+
+                console.log('Sauvegarde:', editingCategoryId, updatedCategory);
+
+                const res = await fetch(`${API}/categories/${editingCategoryId}`, {
+                    method: 'PUT',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'x-token': localStorage.getItem('token')
+                    },
+                    body: JSON.stringify(updatedCategory)
+                });
+
+                const data = await res.json();
+                console.log('Réponse:', data);
+
+                if (data.success) {
+                    showMessage('✅ Catégorie modifiée!', 'success');
+                    categoryImageUrl = null;
+                    closeModal('editCategoryModal');
+                    loadCategoriesList();
+                } else {
+                    showMessage('❌ Erreur: ' + (data.error || 'Sauvegarde échouée'), 'error');
+                }
+            } catch (err) {
+                console.error('Erreur:', err);
+                showMessage('❌ Erreur: ' + err.message, 'error');
+            }
+        }
+
+        async function deleteCategory(id) {
+            if (!confirm('Supprimer cette catégorie?')) return;
+            const res = await fetch(`${API}/categories/${id}`, {
+                method: 'DELETE',
+                headers: {'x-token': localStorage.getItem('token')}
+            });
+            const data = await res.json();
+            if (data.success) {
+                showMessage('✅ Catégorie supprimée!', 'success');
+                loadCategoriesList();
+            }
+        }
+
+        async function addUser() {
+            const username = document.getElementById('userName').value;
+            const password = document.getElementById('userPassword').value;
+            const email = document.getElementById('userEmail').value;
+            const role = document.getElementById('userRole').value;
+            if (!username || !password) return showMessage('❌ Remplis username et password', 'error');
+
+            const res = await fetch(`${API}/users`, {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json', 'x-token': localStorage.getItem('token')},
+                body: JSON.stringify({username, password, email, role})
+            });
+            const data = await res.json();
+            if (data.success) {
+                showMessage('✅ Collaborateur ajouté!', 'success');
+                document.getElementById('userName').value = '';
+                document.getElementById('userPassword').value = '';
+                document.getElementById('userEmail').value = '';
+                loadUsers();
+            }
+        }
+
+        async function loadUsers() {
+            const res = await fetch(`${API}/users`, {headers: {'x-token': localStorage.getItem('token')}});
+            allUsers = await res.json();
+            const tbody = document.getElementById('usersList');
+            tbody.innerHTML = allUsers.map(u => `
+                <tr>
+                    <td>${u.username}</td>
+                    <td>${u.email || '—'}</td>
+                    <td><strong>${u.role === 'admin' ? '👑 Admin' : '👤 Collab'}</strong></td>
+                    <td>
+                        <button class="btn-action btn-edit" onclick="editUser(${u.id})">✏️ Éditer</button>
+                        <button class="btn-action btn-delete" onclick="deleteUser(${u.id})">🗑️ Supprimer</button>
+                    </td>
+                </tr>
+            `).join('');
+        }
+
+        function editUser(id) {
+            const user = allUsers.find(u => u.id === id);
+            if (!user) return;
+            editingUserId = id;
+            document.getElementById('editUserId').value = id;
+            document.getElementById('editUserName').value = user.username;
+            document.getElementById('editUserEmail').value = user.email || '';
+            document.getElementById('editUserRole').value = user.role;
+            openModal('editUserModal');
+        }
+
+        async function saveUserEdit() {
+            const updatedUser = {
+                username: document.getElementById('editUserName').value,
+                email: document.getElementById('editUserEmail').value,
+                role: document.getElementById('editUserRole').value
+            };
+            const res = await fetch(`${API}/users/${editingUserId}`, {
+                method: 'PUT',
+                headers: {'Content-Type': 'application/json', 'x-token': localStorage.getItem('token')},
+                body: JSON.stringify(updatedUser)
+            });
+            const data = await res.json();
+            if (data.success) {
+                showMessage('✅ Collaborateur modifié!', 'success');
+                closeModal('editUserModal');
+                loadUsers();
+            }
+        }
+
+        async function deleteUser(id) {
+            if (!confirm('Supprimer ce collaborateur?')) return;
+            const res = await fetch(`${API}/users/${id}`, {
+                method: 'DELETE',
+                headers: {'x-token': localStorage.getItem('token')}
+            });
+            const data = await res.json();
+            if (data.success) {
+                showMessage('✅ Collaborateur supprimé!', 'success');
+                loadUsers();
+            }
+        }
+
+        async function loadData() {
+            loadCategories();
+            loadProducts();
+            loadUsers();
+        }
+
+        checkAuth();
+    </script>
+</body>
+</html>

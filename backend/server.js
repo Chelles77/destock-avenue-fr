@@ -2,6 +2,10 @@ require('dotenv').config();
 const express = require('express');
 const stripe = require('stripe')(process.env.STRIPE_SECRET_KEY);
 const cors = require('cors');
+const multer = require('multer');
+const path = require('path');
+const fs = require('fs');
+const db = require('./db');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -11,6 +15,23 @@ app.use(cors({
   credentials: true
 }));
 app.use(express.json());
+
+// Config multer pour les uploads
+const uploadsDir = path.join(__dirname, '../static/images');
+if (!fs.existsSync(uploadsDir)) {
+  fs.mkdirSync(uploadsDir, { recursive: true });
+}
+
+const storage = multer.diskStorage({
+  destination: uploadsDir,
+  filename: (req, file, cb) => {
+    const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
+    cb(null, 'product-' + uniqueSuffix + path.extname(file.originalname));
+  }
+});
+const upload = multer({ storage, limits: { fileSize: 5 * 1024 * 1024 } });
+
+app.use(express.static(path.join(__dirname, '..')));
 
 const FRONTEND_URL = process.env.FRONTEND_URL || 'http://localhost:5500';
 
@@ -62,6 +83,81 @@ app.get('/session-status', async (req, res) => {
 
 app.get('/health', (req, res) => {
   res.json({ status: 'OK' });
+});
+
+// === UPLOAD IMAGE ===
+app.post('/api/upload', upload.single('image'), (req, res) => {
+  if (!req.file) return res.status(400).json({ error: 'Pas d\'image' });
+  const imagePath = '/static/images/' + req.file.filename;
+  res.json({ url: imagePath });
+});
+
+// === ROUTES PRODUITS ===
+app.get('/api/products', (req, res) => {
+  db.all('SELECT * FROM products ORDER BY category, name', (err, rows) => {
+    if (err) return res.status(500).json({ error: err.message });
+    res.json(rows || []);
+  });
+});
+
+app.get('/api/products/category/:category', (req, res) => {
+  db.all('SELECT * FROM products WHERE category = ? ORDER BY name', [req.params.category], (err, rows) => {
+    if (err) return res.status(500).json({ error: err.message });
+    res.json(rows || []);
+  });
+});
+
+app.post('/api/products', (req, res) => {
+  const { id, category, name, price, original_price, discount, stock, image } = req.body;
+  db.run(
+    'INSERT INTO products (id, category, name, price, original_price, discount, stock, image) VALUES (?, ?, ?, ?, ?, ?, ?, ?)',
+    [id, category, name, price, original_price, discount, stock, image],
+    function(err) {
+      if (err) return res.status(400).json({ error: err.message });
+      res.json({ id, message: 'Produit ajouté' });
+    }
+  );
+});
+
+app.put('/api/products/:id', (req, res) => {
+  const { name, price, original_price, discount, stock, image } = req.body;
+  db.run(
+    'UPDATE products SET name=?, price=?, original_price=?, discount=?, stock=?, image=? WHERE id=?',
+    [name, price, original_price, discount, stock, image, req.params.id],
+    function(err) {
+      if (err) return res.status(400).json({ error: err.message });
+      res.json({ message: 'Produit mis à jour' });
+    }
+  );
+});
+
+app.delete('/api/products/:id', (req, res) => {
+  db.run('DELETE FROM products WHERE id=?', [req.params.id], function(err) {
+    if (err) return res.status(400).json({ error: err.message });
+    res.json({ message: 'Produit supprimé' });
+  });
+});
+
+// === AUTH ===
+app.post('/api/login', (req, res) => {
+  const { username, password } = req.body;
+  if (username === 'admin' && password === 'admin123') {
+    res.json({
+      success: true,
+      token: 'demo-token-12345',
+      user: { id: 1, username: 'admin', role: 'admin' }
+    });
+  } else {
+    res.json({ success: false, error: 'Identifiants incorrects' });
+  }
+});
+
+// === CATEGORIES ===
+app.get('/api/categories', (req, res) => {
+  db.all('SELECT DISTINCT category as id, category as name FROM products ORDER BY category', (err, rows) => {
+    if (err) return res.status(500).json({ error: err.message });
+    res.json(rows || []);
+  });
 });
 
 app.listen(PORT, () => {

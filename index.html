@@ -3,183 +3,540 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Destock Avenue FR - Les Meilleures Affaires, Prix Cassés</title>
+    <title>Destock Avenue - Électroménagers à Prix Cassés</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
+
         :root {
-            --bg: #ffffff; --bg-alt: #f5f5f5; --text: #1a1a1a; --text-light: #666;
-            --border: #e0e0e0; --primary: #ff2e2e; --accent: #ffd700;
+            --primary: #1a365d;
+            --accent: #d4af37;
+            --dark: #000;
+            --light: #fff;
+            --gray-light: #f0f0f0;
+            --gray-border: #ddd;
+            --text: #000;
+            --text-light: #666;
         }
-        @media (prefers-color-scheme: dark) {
-            :root { --bg: #0f0f0f; --bg-alt: #1a1a1a; --text: #ffffff;
-                   --text-light: #aaa; --border: #333; }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background: var(--gray-light);
+            color: var(--text);
         }
-        body { font-family: Arial, sans-serif; background: var(--bg); color: var(--text); }
-        header { background: white; padding: 0.75rem 1rem; border-bottom: 1px solid var(--border);
-                display: flex; justify-content: space-between; align-items: center; }
-        .logo { font-size: 1.2rem; font-weight: bold; color: var(--primary); }
-        .menu-toggle { display: none; background: none; border: none; font-size: 1.5rem; cursor: pointer; color: var(--primary); }
-        nav { background: #000; color: white; padding: 0.75rem 1rem; display: flex; gap: 1.5rem; }
-        nav a { color: white; text-decoration: none; font-size: 0.9rem; padding: 0.5rem 0;
-               transition: color 0.2s; }
-        nav a:hover { color: var(--primary); }
+
+        /* HEADER */
+        header {
+            background: white;
+            border-bottom: 1px solid var(--gray-border);
+            padding: 1rem 0;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        .header-top {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 0 1.5rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 2rem;
+        }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            position: relative;
+            height: 60px;
+        }
+
+        .logo img {
+            height: 100%;
+            width: auto;
+            max-width: 250px;
+        }
+
+        .logo-text {
+            display: flex;
+            align-items: center;
+        }
+
+        .logo-text span:first-child {
+            color: var(--primary);
+            padding: 0;
+            border-radius: 0;
+            font-weight: 900;
+        }
+
+        .logo-text span:last-child {
+            color: var(--accent);
+            font-weight: 900;
+            margin-left: 0.3rem;
+        }
+
+        .search-bar {
+            flex: 1;
+            max-width: 400px;
+            display: flex;
+            background: var(--gray-light);
+            border-radius: 2px;
+            overflow: hidden;
+            border: 1px solid var(--gray-border);
+        }
+
+        .search-bar input {
+            flex: 1;
+            border: none;
+            background: none;
+            padding: 0.5rem 0.8rem;
+            font-size: 0.85rem;
+            outline: none;
+        }
+
+        .search-bar button {
+            background: #000;
+            color: white;
+            border: none;
+            padding: 0.5rem 1rem;
+            cursor: pointer;
+            font-weight: 600;
+            transition: opacity 0.2s;
+            font-size: 0.9rem;
+        }
+
+        .search-bar button:hover {
+            opacity: 0.9;
+        }
+
+        .header-actions {
+            display: flex;
+            gap: 1.5rem;
+            align-items: center;
+        }
+
+        .header-link {
+            text-decoration: none;
+            color: var(--text);
+            font-weight: 500;
+            font-size: 0.95rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            transition: color 0.2s;
+        }
+
+        .header-link:hover {
+            color: var(--primary);
+        }
+
+        .cart-badge {
+            background: #000;
+            color: white;
+            font-size: 0.75rem;
+            padding: 0.2rem 0.5rem;
+            border-radius: 2px;
+            font-weight: 700;
+        }
+
+        /* NAVBAR */
+        nav {
+            background: var(--dark);
+            padding: 0;
+        }
+
+        .nav-container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 0 1.5rem;
+            display: flex;
+            gap: 2rem;
+        }
+
+        nav a {
+            color: white;
+            text-decoration: none;
+            padding: 1rem 0;
+            font-weight: 500;
+            font-size: 0.95rem;
+            border-bottom: 3px solid transparent;
+            transition: all 0.2s;
+        }
+
+        nav a:hover {
+            border-bottom-color: #ff6b35;
+            color: #ff6b35;
+        }
+
+        .dropdown {
+            position: relative;
+            display: flex;
+            align-items: center;
+        }
+
+        .dropdown > a {
+            padding: 1rem 0;
+            display: block;
+        }
+
+        .dropdown-menu {
+            position: absolute;
+            top: 100%;
+            left: 0;
+            background: white;
+            min-width: 220px;
+            border: 1px solid var(--gray-border);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+            display: none;
+            z-index: 1000;
+            margin-top: -1px;
+        }
+
+        .dropdown:hover .dropdown-menu {
+            display: block;
+        }
+
+        .dropdown-menu a {
+            color: var(--text);
+            padding: 0.8rem 1.2rem;
+            border: none;
+            display: block;
+            width: 100%;
+            text-align: left;
+            font-weight: 500;
+            text-decoration: none;
+            transition: all 0.2s;
+        }
+
+        .dropdown-menu a:hover {
+            background: #ff6b35;
+            color: white;
+        }
+
+        /* HERO */
+        .hero {
+            background: linear-gradient(135deg, #000 0%, #1a1a1a 100%);
+            color: white;
+            padding: 3rem 1.5rem;
+            text-align: center;
+            border-bottom: 4px solid var(--primary);
+        }
+
+        .hero h1 {
+            font-size: 2rem;
+            margin-bottom: 0.75rem;
+            font-weight: 700;
+        }
+
+        .hero p {
+            font-size: 0.95rem;
+            opacity: 0.85;
+            max-width: 600px;
+            margin: 0 auto;
+        }
+
+        /* CONTAINER */
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 3rem 1.5rem;
+        }
+
+        .section-title {
+            font-size: 1.8rem;
+            margin-bottom: 2rem;
+            font-weight: 700;
+            color: var(--dark);
+        }
+
+        /* CATEGORIES SECTION */
+        .categories-section {
+            background: white;
+            padding: 2rem 1.5rem;
+            margin-bottom: 3rem;
+            border-bottom: 1px solid var(--gray-border);
+        }
+
+        .categories-grid {
+            max-width: 1400px;
+            margin: 0 auto;
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+            gap: 1.5rem;
+        }
+
+        .category-card {
+            text-align: center;
+            text-decoration: none;
+            color: var(--text);
+            border: 1px solid var(--gray-border);
+            border-radius: 4px;
+            padding: 1.5rem;
+            transition: all 0.2s;
+        }
+
+        .category-card:hover {
+            border-color: var(--primary);
+            box-shadow: 0 2px 8px rgba(228, 30, 36, 0.1);
+        }
+
+        .category-icon {
+            font-size: 2rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .category-name {
+            font-weight: 600;
+            font-size: 0.95rem;
+        }
+
+        .category-count {
+            font-size: 0.8rem;
+            color: var(--text-light);
+            margin-top: 0.25rem;
+        }
+
+        /* PRODUCTS GRID */
+        .products-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+            gap: 1.5rem;
+        }
+
+        .product-card {
+            background: white;
+            border: 1px solid var(--gray-border);
+            border-radius: 4px;
+            overflow: hidden;
+            transition: all 0.3s;
+            cursor: pointer;
+        }
+
+        .product-card:hover {
+            box-shadow: 0 4px 16px rgba(0,0,0,0.1);
+            transform: translateY(-2px);
+        }
+
+        .product-image-container {
+            position: relative;
+            width: 100%;
+            height: 180px;
+            background: var(--gray-light);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+        }
+
+        .product-image {
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
+            padding: 0.5rem;
+        }
+
+        .product-discount {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            background: #000;
+            color: white;
+            padding: 0.4rem 0.8rem;
+            border-radius: 3px;
+            font-weight: 700;
+            font-size: 0.85rem;
+        }
+
+        .product-info {
+            padding: 1rem;
+        }
+
+        .product-name {
+            font-weight: 600;
+            font-size: 0.95rem;
+            margin-bottom: 0.5rem;
+            line-height: 1.3;
+            min-height: 2.6rem;
+        }
+
+        .product-prices {
+            display: flex;
+            gap: 0.5rem;
+            align-items: center;
+            margin-bottom: 0.5rem;
+        }
+
+        .product-price {
+            font-size: 1.3rem;
+            font-weight: 700;
+            color: var(--primary);
+        }
+
+        .product-original {
+            text-decoration: line-through;
+            color: var(--text-light);
+            font-size: 0.9rem;
+        }
+
+        .product-stock {
+            font-size: 0.85rem;
+            font-weight: 600;
+            margin-bottom: 0.75rem;
+            color: #51cf66;
+        }
+
+        .product-stock.low {
+            color: var(--primary);
+        }
+
+        .btn-add {
+            width: 100%;
+            background: var(--primary);
+            color: white;
+            border: none;
+            padding: 0.75rem;
+            border-radius: 4px;
+            cursor: pointer;
+            font-weight: 600;
+            font-size: 0.9rem;
+            transition: all 0.2s;
+        }
+
+        .btn-add:hover {
+            background: #ff6b35;
+            color: white;
+        }
+
         @media (max-width: 768px) {
-            .menu-toggle { display: block; }
-            nav { position: absolute; top: 3rem; left: 0; right: 0; flex-direction: column; gap: 0; padding: 1rem; max-height: 0; overflow: hidden; transition: max-height 0.3s; }
-            nav.active { max-height: 300px; }
-            nav a { padding: 0.75rem 0; border-bottom: 1px solid #333; }
+            .header-top {
+                flex-direction: column;
+                gap: 1rem;
+            }
+
+            .search-bar {
+                max-width: 100%;
+            }
+
+            .hero h1 {
+                font-size: 1.5rem;
+            }
+
+            .products-grid {
+                grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+                gap: 1rem;
+            }
+
+            .nav-container {
+                flex-wrap: wrap;
+                gap: 0;
+            }
+
+            nav a {
+                padding: 0.75rem 1rem;
+            }
         }
-        .hero { background: linear-gradient(135deg, #ff2e2e 0%, #ff6b5b 100%); color: white;
-               padding: 5rem 2rem; text-align: center; }
-        .hero h1 { font-size: 3rem; margin-bottom: 1rem; }
-        .hero p { font-size: 1.2rem; margin-bottom: 2rem; }
-        .cta-button { background: white; color: #ff2e2e; padding: 1rem 2rem;
-                     border: none; border-radius: 6px; font-weight: bold;
-                     cursor: pointer; font-size: 1rem; }
-        .cta-button:hover { transform: scale(1.05); }
-        .container { max-width: 1200px; margin: 0 auto; padding: 2rem; }
-        .categories { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-                     gap: 2rem; margin: 3rem 0; }
-        .category-card { background: var(--bg-alt); padding: 2rem; border-radius: 8px;
-                        text-align: center; cursor: pointer; transition: all 0.3s; }
-        .category-card:hover { transform: translateY(-8px); box-shadow: 0 8px 16px rgba(0,0,0,0.1); }
-        .category-card a { text-decoration: none; color: var(--text); display: block; }
-        .category-icon { font-size: 3rem; margin-bottom: 1rem; }
-        .category-name { font-weight: bold; margin-bottom: 0.5rem; font-size: 1.1rem; }
-        .category-count { color: var(--text-light); font-size: 0.9rem; }
-        footer { background: #000; color: white; padding: 2rem; text-align: center; margin-top: 3rem; }
+
+        @keyframes slideIn {
+            from {
+                transform: translateX(400px);
+                opacity: 0;
+            }
+            to {
+                transform: translateX(0);
+                opacity: 1;
+            }
+        }
+
+        @keyframes slideOut {
+            from {
+                transform: translateX(0);
+                opacity: 1;
+            }
+            to {
+                transform: translateX(400px);
+                opacity: 0;
+            }
+        }
     </style>
 </head>
 <body>
+    <!-- HEADER -->
     <header>
-        <div class="logo">🔴 destock.</div>
-        <button class="menu-toggle" onclick="toggleMenu()">☰</button>
-        <nav id="menu">
-            <a href="index.html">Accueil</a>
-            <a href="#categories">Catégories</a>
-            <a href="#features">À Propos</a>
-            <a href="panier.html">🛒 Panier (<span id="cart-count">0</span>)</a>
-        </nav>
+        <div class="header-top">
+            <div class="logo"><img src="logo-azulan.png" alt="AZULAN"></div>
+            <div class="search-bar">
+                <input type="text" placeholder="Rechercher un produit...">
+                <button>🔍</button>
+            </div>
+            <div class="header-actions">
+                <a href="login.html" class="header-link">👤 Connexion</a>
+                <a href="panier.html" class="header-link">🛒 Panier <span class="cart-badge" id="cart-count">0</span></a>
+            </div>
+        </div>
     </header>
 
-    <section class="hero">
-        <div style="max-width: 800px; margin: 0 auto;">
-            <h1>Les Meilleures Affaires, Prix Cassés</h1>
-            <p>Produits de marque premium à prix déstockage - Jusqu'à 70% de réduction</p>
-            <button class="cta-button" onclick="document.getElementById('categories').scrollIntoView({behavior: 'smooth'})">
-                Voir les Produits
-            </button>
+    <!-- NAVBAR -->
+    <nav>
+        <div class="nav-container">
+            <a href="index.html">Accueil</a>
+            <div class="dropdown">
+                <a href="#">Toutes les catégories ▼</a>
+                <div class="dropdown-menu" id="navCategories"></div>
+            </div>
+            <a href="#about">À Propos</a>
+            <a href="#contact">Nous Contacter</a>
         </div>
-    </section>
+    </nav>
 
-    <div class="container">
-        <section id="categories">
-            <h2 style="font-size: 2rem; margin-bottom: 2rem; text-align: center;">Parcourir par Catégorie</h2>
-
-            <div class="categories">
-                <div class="category-card">
-                    <a href="categorie-aspirateurs.html">
-                        <div class="category-icon">🤖</div>
-                        <div class="category-name">Aspirateurs Robots</div>
-                        <div class="category-count">91 produits</div>
-                    </a>
-                </div>
-
-                <div class="category-card">
-                    <a href="categorie-cafetiere.html">
-                        <div class="category-icon">☕</div>
-                        <div class="category-name">Cafetières</div>
-                        <div class="category-count">61 produits</div>
-                    </a>
-                </div>
-
-                <div class="category-card">
-                    <a href="categorie-airfryer.html">
-                        <div class="category-icon">🍟</div>
-                        <div class="category-name">Air Fryers</div>
-                        <div class="category-count">21 produits</div>
-                    </a>
-                </div>
-
-                <div class="category-card">
-                    <a href="categorie-robots.html">
-                        <div class="category-icon">🥘</div>
-                        <div class="category-name">Robots Cuiseur</div>
-                        <div class="category-count">18 produits</div>
-                    </a>
-                </div>
-
-                <div class="category-card">
-                    <a href="categorie-electromenager.html">
-                        <div class="category-icon">🧯</div>
-                        <div class="category-name">Électroménager</div>
-                        <div class="category-count">26 produits</div>
-                    </a>
-                </div>
-
-                <div class="category-card">
-                    <a href="categorie-autres.html">
-                        <div class="category-icon">📦</div>
-                        <div class="category-name">Autres</div>
-                        <div class="category-count">222 produits</div>
-                    </a>
-                </div>
-            </div>
-        </section>
-
-        <section id="features" style="margin-top: 4rem; padding: 2rem; background: var(--bg-alt); border-radius: 8px;">
-            <h2 style="font-size: 1.5rem; margin-bottom: 1.5rem;">Pourquoi Choisir Destock Avenue FR ?</h2>
-
-            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 2rem;">
-                <div>
-                    <h3 style="font-size: 1.1rem; margin-bottom: 0.5rem;">📦 Arrivages Réguliers</h3>
-                    <p style="color: var(--text-light);">Nouveau stock chaque semaine</p>
-                </div>
-                <div>
-                    <h3 style="font-size: 1.1rem; margin-bottom: 0.5rem;">⭐ Marques Premium</h3>
-                    <p style="color: var(--text-light);">DREAME • ECOVACS • Samsung • Ninja</p>
-                </div>
-                <div>
-                    <h3 style="font-size: 1.1rem; margin-bottom: 0.5rem;">💰 Prix Cassés</h3>
-                    <p style="color: var(--text-light);">Jusqu'à 70% de réduction</p>
-                </div>
-                <div>
-                    <h3 style="font-size: 1.1rem; margin-bottom: 0.5rem;">⚡ Stock Limité</h3>
-                    <p style="color: var(--text-light);">Dépêche-toi avant rupture !</p>
-                </div>
-                <div>
-                    <h3 style="font-size: 1.1rem; margin-bottom: 0.5rem;">✅ 100% Sécurisé</h3>
-                    <p style="color: var(--text-light);">Testé et Garanti</p>
-                </div>
-                <div>
-                    <h3 style="font-size: 1.1rem; margin-bottom: 0.5rem;">🚚 Livraison Rapide</h3>
-                    <p style="color: var(--text-light);">Expédié en 24h</p>
-                </div>
-            </div>
-        </section>
+    <!-- HERO -->
+    <div class="hero">
+        <h1>Les Meilleures Affaires, Prix Cassés</h1>
+        <p>Électroménagers, appareils & produits premium à prix de déstockage jusqu'à 70% de réduction</p>
     </div>
 
-    <footer>
-        <p><strong>Destock Avenue FR - Les Meilleures Affaires, Prix Cassés</strong></p>
-        <p style="margin-top: 1rem; color: #aaa;">© 2026 - Tous droits réservés</p>
-        <p style="margin-top: 1rem; color: #aaa;">📧 nqairidriss@yahoo.fr | 💬 WhatsApp</p>
-    </footer>
+    <!-- CATEGORIES -->
+    <div class="categories-section">
+        <div class="categories-grid" id="categoriesGrid"></div>
+    </div>
+
+    <!-- PRODUCTS -->
+    <div class="container">
+        <h2 class="section-title">Nos Produits en Vedette</h2>
+        <div class="products-grid" id="productsGrid"></div>
+    </div>
+
     <script>
-        function toggleMenu() {
-            const menu = document.getElementById('menu');
-            menu.classList.toggle('active');
-        }
-        document.querySelectorAll('#menu a').forEach(link => {
-            link.addEventListener('click', () => {
-                document.getElementById('menu').classList.remove('active');
-            });
-        });
+        const API = 'http://localhost:3002/api';
 
         function updateCartCount() {
             const cart = JSON.parse(localStorage.getItem('cart')) || [];
             const count = cart.reduce((sum, item) => sum + item.qty, 0);
-            const countElement = document.getElementById('cart-count');
-            if (countElement) countElement.textContent = count;
+            document.getElementById('cart-count').textContent = count;
+        }
+
+        function showNotification(message) {
+            const notification = document.createElement('div');
+            notification.textContent = message;
+            notification.style.cssText = `
+                position: fixed;
+                top: 20px;
+                right: 20px;
+                background: #51cf66;
+                color: white;
+                padding: 1rem 1.5rem;
+                border-radius: 4px;
+                box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+                z-index: 2000;
+                font-weight: 600;
+                animation: slideIn 0.3s ease;
+            `;
+            document.body.appendChild(notification);
+            setTimeout(() => {
+                notification.style.animation = 'slideOut 0.3s ease';
+                setTimeout(() => notification.remove(), 300);
+            }, 2000);
         }
 
         function addToCart(id, name, price) {
@@ -192,10 +549,66 @@
             }
             localStorage.setItem('cart', JSON.stringify(cart));
             updateCartCount();
-            alert(name + ' ajouté au panier ! ✅');
+            showNotification('✅ ' + name + ' ajouté au panier!');
+        }
+
+        async function loadData() {
+            try {
+                const catRes = await fetch(API + '/categories');
+                const categories = await catRes.json();
+                const prodRes = await fetch(API + '/products');
+                const products = await prodRes.json();
+
+                const productCount = {};
+                products.forEach(p => {
+                    productCount[p.category] = (productCount[p.category] || 0) + 1;
+                });
+
+                let catHtml = '';
+                categories.forEach(cat => {
+                    const count = productCount[cat.id] || 0;
+                    catHtml += `<a href="categorie.html?id=${cat.id}" class="category-card">
+                        <div class="category-icon">📦</div>
+                        <div class="category-name">${cat.name}</div>
+                        <div class="category-count">${count} produits</div>
+                    </a>`;
+                });
+                document.getElementById('categoriesGrid').innerHTML = catHtml;
+                document.getElementById('navCategories').innerHTML = categories
+                    .map(c => `<a href="categorie.html?id=${c.id}">${c.name}</a>`)
+                    .join('');
+
+                let prodHtml = '';
+                products.slice(0, 12).forEach((p, i) => {
+                    const img = p.image || `https://picsum.photos/200/180?random=${i}`;
+                    const discount = p.discount || '-20%';
+                    const stock = p.stock > 0 ? `✓ ${p.stock} en stock` : '⚠️ Rupture';
+                    const stockClass = p.stock > 0 ? '' : 'low';
+
+                    prodHtml += `<div class="product-card" onclick="window.location.href='produit.html?id=${p.id}'">
+                        <div class="product-image-container">
+                            <img src="${img}" alt="${p.name}" class="product-image">
+                            <div class="product-discount">${discount}</div>
+                        </div>
+                        <div class="product-info">
+                            <div class="product-name">${p.name}</div>
+                            <div class="product-prices">
+                                <span class="product-price">${p.price}€</span>
+                                <span class="product-original">${p.original_price}€</span>
+                            </div>
+                            <div class="product-stock ${stockClass}">${stock}</div>
+                            <button class="btn-add" onclick="event.stopPropagation(); addToCart('${p.id}', '${p.name}', ${p.price})">Ajouter au panier</button>
+                        </div>
+                    </div>`;
+                });
+                document.getElementById('productsGrid').innerHTML = prodHtml;
+            } catch (err) {
+                console.error('Erreur:', err);
+            }
         }
 
         updateCartCount();
+        loadData();
     </script>
 </body>
 </html>

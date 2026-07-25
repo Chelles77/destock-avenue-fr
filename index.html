@@ -639,8 +639,22 @@
     </script>
 
     <!-- ADMIN BADGE -->
-    <a href="connexion.html" class="admin-badge" title="Connexion Admin">
+    <a href="admin-dashboard.html" class="admin-badge" title="Accès Admin" onclick="checkAdminAccess(event)">
         🔐 Admin
     </a>
+
+    <script>
+        function checkAdminAccess(e) {
+            const user = JSON.parse(localStorage.getItem('azulan_currentUser') || '{}');
+            // Si c'est un client, redirige vers connexion.html
+            if (user.role === 'client') {
+                e.preventDefault();
+                // Logout d'abord
+                localStorage.removeItem('azulan_currentUser');
+                window.location.href = 'connexion.html';
+            }
+            // Si c'est un admin, laisse aller au dashboard
+        }
+    </script>
 </body>
 </html>

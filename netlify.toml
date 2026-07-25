@@ -1,0 +1,16 @@
+[build]
+  publish = "destock-avenue-fr"
+  command = "echo 'No build needed'"
+
+[context.production]
+  command = "echo 'Production build'"
+
+[[redirects]]
+  from = "/*"
+  to = "/index.html"
+  status = 200
+
+[headers]
+  [[headers.values]]
+    key = "Access-Control-Allow-Origin"
+    value = "*"

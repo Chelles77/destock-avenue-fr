@@ -126,7 +126,7 @@
             const username = document.getElementById('username').value;
             const password = document.getElementById('password').value;
 
-            fetch('http://localhost:3002/api/login', {
+            fetch('https://azulan-backend.onrender.com/api/login', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ username, password })

@@ -1,5 +1,5 @@
 [build]
-  publish = "destock-avenue-fr"
+  publish = "."
   command = "echo 'No build needed'"
 
 [context.production]

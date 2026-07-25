@@ -65,6 +65,23 @@
             padding-top: 2rem;
             border-top: 1px solid rgba(255,255,255,0.2);
         }
+        .sidebar-menu a {
+            display: block;
+            width: 100%;
+            background: none;
+            border: none;
+            color: white;
+            padding: 0.75rem 1rem;
+            text-align: left;
+            cursor: pointer;
+            border-radius: 4px;
+            transition: all 0.2s;
+            font-size: 0.95rem;
+            text-decoration: none;
+        }
+        .sidebar-menu a:hover {
+            background: var(--accent);
+        }
         .main-content {
             margin-left: 250px;
             flex: 1;
@@ -296,7 +313,8 @@
                 <li><button class="menu-btn" onclick="showSection('passwords')">🔑 Mots de Passe</button></li>
             </ul>
             <div class="sidebar-logout">
-                <button class="btn btn-danger" style="width: 100%;" onclick="logout()">Déconnexion</button>
+                <li><a href="index.html" target="_blank">🏠 Aller au site</a></li>
+                <li><button class="btn btn-danger" style="width: 100%; margin-top: 1rem;" onclick="logout()">Déconnexion</button></li>
             </div>
         </div>
 
@@ -354,6 +372,7 @@
             <!-- CLIENTS -->
             <div id="clients" class="section">
                 <h2>Informations Clients</h2>
+                <button class="btn btn-primary" onclick="openAddClientModal()">+ Ajouter Client</button>
                 <table>
                     <thead>
                         <tr>
@@ -362,6 +381,7 @@
                             <th>Téléphone</th>
                             <th>Newsletter</th>
                             <th>Date d'inscription</th>
+                            <th>Actions</th>
                         </tr>
                     </thead>
                     <tbody id="clientsTable">
@@ -417,6 +437,37 @@
                     </div>
                 </div>
             </div>
+        </div>
+    </div>
+
+    <!-- MODAL AJOUTER/MODIFIER CLIENT -->
+    <div id="clientModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Gérer Client</h2>
+                <button class="close-btn" onclick="closeClientModal()">×</button>
+            </div>
+            <div class="form-group">
+                <label>Email</label>
+                <input type="email" id="clientEmail">
+            </div>
+            <div class="form-group">
+                <label>Prénom</label>
+                <input type="text" id="clientFirstName">
+            </div>
+            <div class="form-group">
+                <label>Nom</label>
+                <input type="text" id="clientLastName">
+            </div>
+            <div class="form-group">
+                <label>Téléphone</label>
+                <input type="tel" id="clientPhone">
+            </div>
+            <div class="checkbox-group">
+                <input type="checkbox" id="clientNewsletter">
+                <label for="clientNewsletter">Abonné à la newsletter</label>
+            </div>
+            <button class="btn btn-success" onclick="saveClient()">Enregistrer</button>
         </div>
     </div>
 
@@ -521,9 +572,13 @@
                     <td>${client.phone || 'N/A'}</td>
                     <td>${client.newsletter ? '✅ Oui' : '❌ Non'}</td>
                     <td>${new Date(client.createdAt).toLocaleDateString('fr-FR')}</td>
+                    <td>
+                        <button class="btn btn-primary" onclick="openEditClientModal('${email}')">Modifier</button>
+                        <button class="btn btn-danger" onclick="deleteClient('${email}')">Supprimer</button>
+                    </td>
                 </tr>
             `).join('');
-            document.getElementById('clientsTable').innerHTML = html || '<tr><td colspan="5" style="text-align: center;">Aucun client</td></tr>';
+            document.getElementById('clientsTable').innerHTML = html || '<tr><td colspan="6" style="text-align: center;">Aucun client</td></tr>';
         }
 
         function openAddUserModal() {
@@ -650,6 +705,77 @@
 
             alert(`✅ Mot de passe réinitialisé pour ${email}`);
             loadUsersPasswordTable();
+        }
+
+        function openAddClientModal() {
+            document.getElementById('clientEmail').value = '';
+            document.getElementById('clientFirstName').value = '';
+            document.getElementById('clientLastName').value = '';
+            document.getElementById('clientPhone').value = '';
+            document.getElementById('clientNewsletter').checked = false;
+            document.getElementById('clientModal').dataset.email = '';
+            document.getElementById('clientModal').classList.add('active');
+        }
+
+        function openEditClientModal(email) {
+            const clients = JSON.parse(localStorage.getItem('azulan_users')) || {};
+            const client = clients[email];
+
+            document.getElementById('clientEmail').value = email;
+            document.getElementById('clientFirstName').value = client.firstName;
+            document.getElementById('clientLastName').value = client.lastName;
+            document.getElementById('clientPhone').value = client.phone || '';
+            document.getElementById('clientNewsletter').checked = client.newsletter || false;
+            document.getElementById('clientModal').dataset.email = email;
+            document.getElementById('clientModal').classList.add('active');
+        }
+
+        function closeClientModal() {
+            document.getElementById('clientModal').classList.remove('active');
+        }
+
+        function saveClient() {
+            const email = document.getElementById('clientEmail').value;
+            const firstName = document.getElementById('clientFirstName').value;
+            const lastName = document.getElementById('clientLastName').value;
+            const phone = document.getElementById('clientPhone').value;
+            const newsletter = document.getElementById('clientNewsletter').checked;
+            const oldEmail = document.getElementById('clientModal').dataset.email;
+
+            if (!email || !firstName || !lastName) {
+                alert('Email, Prénom et Nom sont requis');
+                return;
+            }
+
+            const clients = JSON.parse(localStorage.getItem('azulan_users')) || {};
+
+            if (oldEmail && oldEmail !== email) {
+                delete clients[oldEmail];
+            }
+
+            clients[email] = {
+                firstName,
+                lastName,
+                phone,
+                newsletter,
+                password: clients[email]?.password || 'default123',
+                createdAt: clients[email]?.createdAt || new Date().toISOString()
+            };
+
+            localStorage.setItem('azulan_users', JSON.stringify(clients));
+            alert('✅ Client sauvegardé!');
+            closeClientModal();
+            loadClients();
+            loadStats();
+        }
+
+        function deleteClient(email) {
+            if (!confirm(`Supprimer le client ${email}?`)) return;
+            const clients = JSON.parse(localStorage.getItem('azulan_users')) || {};
+            delete clients[email];
+            localStorage.setItem('azulan_users', JSON.stringify(clients));
+            loadClients();
+            loadStats();
         }
 
         function logout() {

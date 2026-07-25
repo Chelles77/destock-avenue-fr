@@ -246,6 +246,25 @@
             gap: 1rem;
             margin-bottom: 2rem;
         }
+        .password-input {
+            padding-right: 2.5rem !important;
+        }
+        .eye-btn {
+            position: absolute;
+            right: 0.75rem;
+            top: 50%;
+            transform: translateY(-50%);
+            background: none;
+            border: none;
+            cursor: pointer;
+            font-size: 1rem;
+            padding: 0;
+            color: #999;
+            transition: color 0.2s;
+        }
+        .eye-btn:hover {
+            color: var(--primary);
+        }
         .stat-card {
             background: white;
             padding: 1.5rem;
@@ -352,21 +371,50 @@
 
             <!-- GESTION MOTS DE PASSE -->
             <div id="passwords" class="section">
-                <h2>Changer Mot de Passe</h2>
-                <div style="max-width: 400px;">
-                    <div class="form-group">
-                        <label>Ancien mot de passe</label>
-                        <input type="password" id="oldPassword">
+                <h2>Gestion des Mots de Passe</h2>
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 2rem;">
+                    <!-- CHANGER MON MOT DE PASSE ADMIN -->
+                    <div>
+                        <h3 style="margin-bottom: 1rem; color: var(--primary);">Mon Mot de Passe (Admin)</h3>
+                        <div class="form-group">
+                            <label>Ancien mot de passe</label>
+                            <div style="position: relative;">
+                                <input type="password" id="oldPassword" class="password-input">
+                                <button class="eye-btn" onclick="togglePassword('oldPassword')">👁️</button>
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label>Nouveau mot de passe</label>
+                            <div style="position: relative;">
+                                <input type="password" id="newPassword" class="password-input">
+                                <button class="eye-btn" onclick="togglePassword('newPassword')">👁️</button>
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label>Confirmer mot de passe</label>
+                            <div style="position: relative;">
+                                <input type="password" id="confirmPassword" class="password-input">
+                                <button class="eye-btn" onclick="togglePassword('confirmPassword')">👁️</button>
+                            </div>
+                        </div>
+                        <button class="btn btn-success" onclick="changePassword()">Changer</button>
                     </div>
-                    <div class="form-group">
-                        <label>Nouveau mot de passe</label>
-                        <input type="password" id="newPassword">
+
+                    <!-- GÉRER MOTS DE PASSE UTILISATEURS -->
+                    <div>
+                        <h3 style="margin-bottom: 1rem; color: var(--primary);">Gérer les Utilisateurs</h3>
+                        <table style="font-size: 0.9rem;">
+                            <thead>
+                                <tr>
+                                    <th>Email</th>
+                                    <th>Type</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody id="usersPasswordTable">
+                            </tbody>
+                        </table>
                     </div>
-                    <div class="form-group">
-                        <label>Confirmer mot de passe</label>
-                        <input type="password" id="confirmPassword">
-                    </div>
-                    <button class="btn btn-success" onclick="changePassword()">Changer</button>
                 </div>
             </div>
         </div>
@@ -397,7 +445,10 @@
             </div>
             <div class="form-group">
                 <label>Mot de passe</label>
-                <input type="password" id="userPassword">
+                <div style="position: relative;">
+                    <input type="password" id="userPassword" class="password-input">
+                    <button class="eye-btn" onclick="togglePassword('userPassword')">👁️</button>
+                </div>
             </div>
             <button class="btn btn-primary" onclick="addUser()">Créer</button>
         </div>
@@ -413,7 +464,17 @@
             loadStats();
             loadUsers();
             loadClients();
+            loadUsersPasswordTable();
         });
+
+        function togglePassword(fieldId) {
+            const field = document.getElementById(fieldId);
+            if (field.type === 'password') {
+                field.type = 'text';
+            } else {
+                field.type = 'password';
+            }
+        }
 
         function updateClock() {
             const time = new Date().toLocaleTimeString('fr-FR');
@@ -537,6 +598,58 @@
             const el = document.getElementById('userMessage');
             el.textContent = msg;
             el.className = `message ${type}`;
+        }
+
+        function loadUsersPasswordTable() {
+            const admins = JSON.parse(localStorage.getItem('azulan_admins')) || {};
+            const clients = JSON.parse(localStorage.getItem('azulan_users')) || {};
+
+            let html = '';
+
+            // Admins & Collaborators
+            Object.entries(admins).forEach(([email, user]) => {
+                html += `
+                    <tr>
+                        <td>${email}</td>
+                        <td><span class="badge ${user.role === 'admin' ? 'badge-admin' : 'badge-collab'}">${user.role === 'admin' ? 'Admin' : 'Collab'}</span></td>
+                        <td><button class="btn btn-primary" onclick="openResetModal('${email}', 'admin')">Réinitialiser</button></td>
+                    </tr>
+                `;
+            });
+
+            // Clients
+            Object.entries(clients).forEach(([email, client]) => {
+                html += `
+                    <tr>
+                        <td>${email}</td>
+                        <td><span class="badge badge-client">Client</span></td>
+                        <td><button class="btn btn-primary" onclick="openResetModal('${email}', 'client')">Réinitialiser</button></td>
+                    </tr>
+                `;
+            });
+
+            document.getElementById('usersPasswordTable').innerHTML = html || '<tr><td colspan="3" style="text-align: center;">Aucun utilisateur</td></tr>';
+        }
+
+        function openResetModal(email, type) {
+            const newPass = prompt(`Nouveau mot de passe pour ${email}:`);
+            if (!newPass || newPass.length < 8) {
+                alert('Le mot de passe doit avoir au moins 8 caractères');
+                return;
+            }
+
+            if (type === 'admin') {
+                const admins = JSON.parse(localStorage.getItem('azulan_admins')) || {};
+                admins[email].password = newPass;
+                localStorage.setItem('azulan_admins', JSON.stringify(admins));
+            } else {
+                const clients = JSON.parse(localStorage.getItem('azulan_users')) || {};
+                clients[email].password = newPass;
+                localStorage.setItem('azulan_users', JSON.stringify(clients));
+            }
+
+            alert(`✅ Mot de passe réinitialisé pour ${email}`);
+            loadUsersPasswordTable();
         }
 
         function logout() {

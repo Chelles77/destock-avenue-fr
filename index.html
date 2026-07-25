@@ -141,6 +141,33 @@
             font-weight: 700;
         }
 
+        /* ADMIN BADGE */
+        .admin-badge {
+            position: fixed;
+            bottom: 2rem;
+            right: 2rem;
+            background: var(--primary);
+            color: white;
+            padding: 0.75rem 1.25rem;
+            border-radius: 20px;
+            font-size: 0.85rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+            z-index: 50;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+            text-decoration: none;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .admin-badge:hover {
+            background: #ff6b35;
+            transform: scale(1.05);
+            box-shadow: 0 4px 12px rgba(255, 107, 53, 0.3);
+        }
+
         /* NAVBAR */
         nav {
             background: var(--dark);
@@ -610,5 +637,10 @@
         updateCartCount();
         loadData();
     </script>
+
+    <!-- ADMIN BADGE -->
+    <a href="connexion.html" class="admin-badge" title="Connexion Admin">
+        🔐 Admin
+    </a>
 </body>
 </html>

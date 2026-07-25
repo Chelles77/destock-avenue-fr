@@ -129,12 +129,12 @@
             // Admin credentials
             if (username === 'admin' && password === 'admin123') {
                 localStorage.setItem('token', 'demo-token-12345');
-                localStorage.setItem('user', JSON.stringify({
+                localStorage.setItem('azulan_currentUser', JSON.stringify({
                     id: 1,
                     username: 'admin',
                     role: 'admin'
                 }));
-                window.location.href = '/admin-pro.html';
+                window.location.href = '/admin-dashboard.html';
             } else {
                 showMessage('❌ Identifiants incorrects', 'error');
             }

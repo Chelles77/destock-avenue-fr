@@ -263,21 +263,47 @@
             const email = document.getElementById('loginEmail').value;
             const password = document.getElementById('loginPassword').value;
 
-            // Récupérer les utilisateurs stockés
-            const users = JSON.parse(localStorage.getItem('azulan_users')) || {};
+            // Vérifier si c'est un ADMIN
+            const admins = JSON.parse(localStorage.getItem('azulan_admins')) || {};
+            if (email === 'admin' && password === 'admin123') {
+                localStorage.setItem('azulan_currentUser', JSON.stringify({
+                    id: 1,
+                    username: 'admin',
+                    role: 'admin'
+                }));
+                showMessage('loginMessage', '✅ Admin! Redirection...', 'success');
+                setTimeout(() => window.location.href = 'admin-dashboard.html', 1500);
+                return;
+            }
 
+            // Vérifier si c'est un COLLABORATEUR
+            for (let adminEmail in admins) {
+                if (email === adminEmail && admins[adminEmail].password === password) {
+                    localStorage.setItem('azulan_currentUser', JSON.stringify({
+                        email: email,
+                        name: admins[adminEmail].name,
+                        role: admins[adminEmail].role
+                    }));
+                    showMessage('loginMessage', '✅ Collaborateur! Redirection...', 'success');
+                    setTimeout(() => window.location.href = 'admin-dashboard.html', 1500);
+                    return;
+                }
+            }
+
+            // Vérifier si c'est un CLIENT
+            const users = JSON.parse(localStorage.getItem('azulan_users')) || {};
             if (users[email] && users[email].password === password) {
-                // Connexion réussie
                 localStorage.setItem('azulan_currentUser', JSON.stringify({
                     email: email,
                     firstName: users[email].firstName,
                     lastName: users[email].lastName,
-                    phone: users[email].phone
+                    phone: users[email].phone,
+                    role: 'client'
                 }));
-                showMessage('loginMessage', 'Connexion réussie! Redirection...', 'success');
+                showMessage('loginMessage', '✅ Bienvenue! Redirection...', 'success');
                 setTimeout(() => window.location.href = 'index.html', 1500);
             } else {
-                showMessage('loginMessage', 'Email ou mot de passe incorrect', 'error');
+                showMessage('loginMessage', '❌ Email ou mot de passe incorrect', 'error');
             }
         }
 

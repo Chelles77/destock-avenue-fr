@@ -125,7 +125,7 @@ input[type="date"], input[type="time"], input[type="datetime-local"] {
 .kpi-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 1rem; margin: 1.5rem 0; }
 .kpi-card {
     background: var(--card-bg); border: 1px solid var(--border); border-left: 4px solid var(--border);
-    border-radius: 12px; padding: 1.1rem 1.25rem; box-shadow: var(--shadow); position: relative;
+    border-radius: 0px; padding: 1.1rem 1.25rem; box-shadow: var(--shadow); position: relative;
     display: flex; flex-direction: column;
 }
 .kpi-head { display: flex; justify-content: space-between; align-items: center; }

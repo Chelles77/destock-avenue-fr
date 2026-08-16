@@ -11,7 +11,7 @@
 * { box-sizing: border-box; }
 
 body {
-    background-color: var(--bg-light);
+    background-color: #ff0000 !important;
     color: var(--text-main);
     font-family: system-ui, -apple-system, "Segoe UI", sans-serif;
     margin: 0;

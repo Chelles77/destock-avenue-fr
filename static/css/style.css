@@ -179,6 +179,7 @@ input[type="date"], input[type="time"], input[type="datetime-local"] {
 
 @media (max-width: 720px) {
     .inspect-layout { grid-template-columns: 1fr; }
+<<<<<<< HEAD
     .kpi-value { font-size: 1rem; line-height: 1.3; }
     .stat-value { font-size: 0.9rem; }
     .kpi-grid { grid-template-columns: repeat(2, 1fr); gap: 0.6rem; }
@@ -187,6 +188,16 @@ input[type="date"], input[type="time"], input[type="datetime-local"] {
     .kpi-label { font-size: 0.6rem; }
     .kpi-icon { font-size: 0.9rem; }
     .kpi-sub { font-size: 0.6rem; }
+=======
+    .kpi-value { font-size: 0.8rem !important; line-height: 1.1 !important; text-align: center !important; display: block !important; width: 100% !important; word-break: break-word !important; overflow: hidden !important; }
+    .stat-value { font-size: 0.7rem !important; text-align: center !important; }
+    .kpi-grid { grid-template-columns: repeat(2, 1fr); gap: 0.4rem; }
+    .kpi-card { padding: 0.6rem 0.6rem; text-align: center; overflow: hidden; }
+    .kpi-head { flex-direction: column; align-items: center; justify-content: center; text-align: center; }
+    .kpi-label { font-size: 0.5rem !important; text-align: center; }
+    .kpi-icon { font-size: 0.7rem; }
+    .kpi-sub { font-size: 0.5rem !important; text-align: center; }
+>>>>>>> 15a12855 (EMERGENCY FIX: Drastically reduce font sizes and prevent overflow on mobile - use !important and word-break)
 }
 
 /* ---- Toggle Password (Afficher/Masquer mot de passe) ---- */
